@@ -81,9 +81,9 @@ Tout_L           /30/
 Fin_U(i) = Q(i)*3600/(cp*(Tout_U(i)-Tin_U(i)))
 ;
 Equations
-e15, e16, e17, e18, e19, e22, e23, e24, e27                              General Model
-e37, e38, e53, e54, e55, e56, e57, e58, e59, e60, e61, em1, em2, em3     Linear Model
-e35, e36, em4, em5                                                       Nonlinear Model
+e1, e2, e3, e4, e5, e6, e7, e8, e9                                      General Model
+e10, e11, e12, e13, e14, e15, e16, e17, e18, e19, e20, e21, e22, e23    Linear Model
+e24, e25, e26, e27                                                      Nonlinear Model
 ;
 $Ontext
 ---------------------------------General Model----------------------------------
@@ -141,8 +141,8 @@ OS.UP(n) = OS_U(n);
 CW.LO = 90;
 * The lower bound makes the problem solvable.
 
-Model Moodley_Majozi_2008_4_LP /e15,e16,e17,e18,e19,e22,e23,e24,e27,e37,e38,e53,e54,e55,e56,e57,e58,e59,e60,e61,em1,em2,em3/;
-Model Moodley_Majozi_2008_4_NLP /e15,e16,e17,e18,e19,e22,e23,e24,e27,e35,e36,em4,em5/;
+Model Moodley_Majozi_2008_4_LP /e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18, e19, e20, e21, e22, e23/;
+Model Moodley_Majozi_2008_4_NLP /e1, e2, e3, e4, e5, e6, e7, e8, e9, e24, e25, e26, e27/;
 Solve Moodley_Majozi_2008_4_LP using LP minimizing CW;
 Solve Moodley_Majozi_2008_4_NLP using NLP minimizing CW;
 Display CS.l, CR.l, Fin_U, Tret.l;
