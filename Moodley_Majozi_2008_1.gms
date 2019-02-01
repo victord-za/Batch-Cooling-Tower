@@ -10,7 +10,8 @@ $Ontext
         Solution procedure:
           1) Minimise intial amount of cooling water required in storage.
           2) Minimise amount of recirculating cooling water.
-          3) Minimise size of storage tanks.
+          3) Ensure that cooling water is not allowed to go in and out of storage tank at the same time point.
+          4) Minimise size of storage tanks.
 $Offtext
 Sets
 i                Cooling-water-using operations that complies with a mass and energy balance of a counter current heat exchanger\
@@ -37,6 +38,10 @@ QHin(i,p)        Cooling water flow rate from cooling water using operation i to
 QHout(p)         Cooling water flow rate from hot water storage tank to cooling tower n at time point p (t.h^-1)
 Tin(i,p)         Inlet cooling water temperature to cooling-water-using operation i at time point p (C)
 Tout(i,p)        Outlet cooling water temperature from cooling-water-using operation i at time point p (C)
+;
+Binary Variables
+yC(p)            Binary variable controlling inlet and outlet of cold storage tank water.
+yH(p)            Binary variable controlling inlet and outlet of hot storage tank water.
 ;
 Free Variables
 CW               Total cooling water flow supplied from all cooling water sources (t.h^-1)
@@ -139,11 +144,21 @@ sto               Total Amount of Water Storage Required (t)
 ;
 
 Equations
-e20,e21,e22
+e20,e21,e22,e23
 ;
-e20..    mHf =E= smax(p,mH(p));
-e21..    mCf =E= smax(p,mC(p));
-e22..    sto =E= mHf + mCf;
+e20(p)..    sum(i,QHin(i,p)) =L= CWp*yH(p);
+e21(p)..    QHout(p) =L= CWp*(1-yh(p));
+e22(p)..    QCin(p) =L= CWp*yC(p);
+e23(p)..    sum(i,QCout(i,p)) =L= CWp*(1-yC(p));
+Model Moodley_Majozi_2008_1c /e1,e2,e3,e4,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23/;
+Solve Moodley_Majozi_2008_1c using MIP minimising CW;
 
-Model Moodley_Majozi_2008_1c /all/;
-Solve Moodley_Majozi_2008_1c using DNLP minimising sto;
+Equations
+e24,e25,e26
+;
+e24..     mHf =E= smax(p,mH(p));
+e25..     mCf =E= smax(p,mC(p));
+e26..     sto =E= mHf + mCf;
+
+Model Moodley_Majozi_2008_1d /all/;
+Solve Moodley_Majozi_2008_1d using MINLP minimising sto;
