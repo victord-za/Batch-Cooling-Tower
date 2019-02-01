@@ -103,7 +103,7 @@ e14(ii,i,p)$(ord(ii) ne ord(i)).. FR(ii,i,p) =L= Fin_U(i)*y(i,p)*y(ii,p);
 e15(i,p)..                        QCout(i,p) =L= Fin_U(i)*y(i,p);
 e16(i,p)..                        QHin(i,p) =L= Fin_U(i)*y(i,p);
 e17(i,p)..                        CR(i,p) =L= CW*y(i,p);
-e18(i,p)..                        CS(i,p) =L= CW*y(i,p)
+e18(i,p)..                        CS(i,p) =L= CW*y(i,p);
 e19..                             sto0 =E= mC0 + mH0;
 
 *FR.fx(i,ii,p) = 0;
@@ -142,7 +142,11 @@ mCf               Maximum Amount of Storage Required for Cold Water Across All T
 Free Variables
 sto               Total Amount of Water Storage Required (t)
 ;
-
+Parameters
+CWp               Total cooling water flow supplied from all cooling water sources (t.h^-1)
+;
+CWp = CW.l;
+;
 Equations
 e20,e21,e22,e23
 ;
