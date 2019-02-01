@@ -83,12 +83,12 @@ Fin_U(i) = Q(i)*3600/(cp*(Tout_U(i)-Tin_L(i)))
 Equations
 e1,e2,e3,e4,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19
 ;
-e1(p)..                           CW =E= sum(i,CS(i,p)) + QHout(p);
-e2(p)..                           CW =E= sum(i,CR(i,p)) + QCin(p);
+e1(p)..                           CW =E= sum(i,CS(i,p)) + QCin(p);
+e2(p)..                           CW =E= sum(i,CR(i,p)) + QHout(p);
 e3(i,p)..                         Fin(i,p) =E= y(i,p)*(CS(i,p) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*y(ii,p)) + QCout(i,p));
 e4(i,p)..                         Fout(i,p) =E= y(i,p)*(CR(i,p) + sum(ii$(ord(ii) ne ord(i)),FR(i,ii,p)*y(ii,p)) + QHin(i,p));
 e7(i,p)..                         Fin(i,p) =E= Fout(i,p);
-e8(i,p)..                         (Q(i)*3600/cp) + sum(ii$(ord(ii) ne ord(i)),y(ii,p)*FR(ii,i,p)*Tout_U(ii)) + ((CS(i,p) + QCout(i,p))*T) =E= Fin(i,p)*Tout_U(i);
+e8(i,p)..                         (y(i,p)*Q(i)*3600/cp) + sum(ii$(ord(ii) ne ord(i)),y(ii,p)*FR(ii,i,p)*Tout_U(ii)) + ((CS(i,p) + QCout(i,p))*T) =E= Fin(i,p)*Tout_U(i);
 e9(i,p)..                         Fin(i,p) =L= Fin_U(i);
 e10(p)$(ord(p) ne 1)..            mC(p) =E= mC(p-1) + Tau(p-1)*QCin(p-1) - sum(i,(Tau(p-1)*QCout(i,p-1)));
 e11(p)$(ord(p) ne 1)..            mH(p) =E= mH(p-1) + sum(i,Tau(p-1)*QHin(i,p-1)) - Tau(p-1)*QHout(p-1);
@@ -101,6 +101,8 @@ e17(i,p)..                        CR(i,p) =L= CW*y(i,p);
 e18(i,p)..                        CS(i,p) =L= CW*y(i,p)
 e19..                             sto0 =E= mC0 + mH0;
 
+*FR.fx(i,ii,p) = 0;
+*Remove above comment to compare when recycle is not allowed.
 Model Moodley_Majozi_2008_1a /e1,e2,e3,e4,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
