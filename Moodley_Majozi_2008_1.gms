@@ -96,14 +96,34 @@ e16(i,p)..                        QHin(i,p) =L= Fin_U(i)*y(i,p);
 e17(i,p)..                        CR(i,p) =L= CW*y(i,p);
 e18(i,p)..                        CS(i,p) =L= CW*y(i,p)
 
-Model Moodley_Majozi_2008_1 /all/;
+Model Moodley_Majozi_2008_1a /e1,e2,e3,e4,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options LP = CPLEX;
-Moodley_Majozi_2008_1.optfile=1
+Moodley_Majozi_2008_1a.optfile=1
 $onecho > cplex.opt
 iis      1
 $offecho
-Solve Moodley_Majozi_2008_1 using LP minimizing CW;
+Solve Moodley_Majozi_2008_1a using LP minimizing CW;
 Tret(p) = sum(i, CR.l(i,p)*Tout_U(i))/CW.l;
 Display CS.l, CR.l, Tret, Fin_U;
+
+CW.fx = CW.l;
+
+Positive Variables
+mHf
+mCf
+;
+Free Variables
+sto
+;
+
+Equations
+e19,e20,e21
+;
+e19..    mHf =E= smax(p,mH(p));
+e20..    mCf =E= smax(p,mC(p));
+e21..    sto =E= mHf + mCf;
+
+Model Moodley_Majozi_2008_1b /all/;
+Solve Moodley_Majozi_2008_1b using DNLP minimising sto;
