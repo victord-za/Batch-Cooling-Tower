@@ -55,9 +55,9 @@ Q(i)             Duty of cooling-water-using operation i (kW)
                   i3     1800
                   i4     200/
 Tau(p)           Duration of time slot p (h)
-                 /p1     1
+                 /p1     3
                   p2     1
-                  p3     1/
+                  p3     4/
 Tin_L(i)         Limiting inlet temperature to cooling-water-using operation i (C)
                  /i1     20
                   i2     30
@@ -73,6 +73,8 @@ Tret(p)          Return temperature to cooling water source n (C)
 Scalars
 cp               Specific heat capacity of water (J.(kg.C)^-1)
                  /4187/
+M                Large Value
+                 /999999999/
 T                Cooling water supply temperature from cooling water source n (C)
                  /20/
 ;
@@ -142,18 +144,13 @@ mCf               Maximum Amount of Storage Required for Cold Water Across All T
 Free Variables
 sto               Total Amount of Water Storage Required (t)
 ;
-Parameters
-CWp               Total cooling water flow supplied from all cooling water sources (t.h^-1)
-;
-CWp = CW.l;
-;
 Equations
 e20,e21,e22,e23
 ;
-e20(p)..    sum(i,QHin(i,p)) =L= CWp*yH(p);
-e21(p)..    QHout(p) =L= CWp*(1-yh(p));
-e22(p)..    QCin(p) =L= CWp*yC(p);
-e23(p)..    sum(i,QCout(i,p)) =L= CWp*(1-yC(p));
+e20(p)..    sum(i,QHin(i,p)) =L= M*yH(p);
+e21(p)..    QHout(p) =L= M*(1-yh(p));
+e22(p)..    QCin(p) =L= M*yC(p);
+e23(p)..    sum(i,QCout(i,p)) =L= M*(1-yC(p));
 Model Moodley_Majozi_2008_1c /e1,e2,e3,e4,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23/;
 Solve Moodley_Majozi_2008_1c using MIP minimising CW;
 
