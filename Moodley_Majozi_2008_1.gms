@@ -95,10 +95,10 @@ e4(i,p)..                         Fout(i,p) =E= y(i,p)*(CR(i,p) + sum(ii$(ord(ii
 e7(i,p)..                         Fin(i,p) =E= Fout(i,p);
 e8(i,p)..                         (y(i,p)*Q(i)*3600/cp) + sum(ii$(ord(ii) ne ord(i)),y(ii,p)*FR(ii,i,p)*Tout_U(ii)) + ((CS(i,p) + QCout(i,p))*T) =E= Fin(i,p)*Tout_U(i);
 e9(i,p)..                         Fin(i,p) =L= Fin_U(i);
-e10(p)$(ord(p) ne 1)..            mC(p) =E= mC(p-1) + Tau(p-1)*QCin(p-1) - sum(i,(Tau(p-1)*QCout(i,p-1)));
-e11(p)$(ord(p) ne 1)..            mH(p) =E= mH(p-1) + sum(i,Tau(p-1)*QHin(i,p-1)) - Tau(p-1)*QHout(p-1);
-e12(p)$(ord(p) = 1)..             mC(p) =E= mC0;
-e13(p)$(ord(p) = 1)..             mH(p) =E= mH0;
+e10(p)$(ord(p) ne 1)..            mC(p) =E= mC(p-1) + Tau(p)*QCin(p) - sum(i,(Tau(p)*QCout(i,p)));
+e11(p)$(ord(p) ne 1)..            mH(p) =E= mH(p-1) + sum(i,Tau(p)*QHin(i,p)) - Tau(p)*QHout(p);
+e12(p)$(ord(p) = 1)..             mC(p) =E= mC0 + Tau(p)*QCin(p) - sum(i,(Tau(p)*QCout(i,p)));
+e13(p)$(ord(p) = 1)..             mH(p) =E= mH0 + sum(i,Tau(p)*QHin(i,p)) - Tau(p)*QHout(p);
 e14(ii,i,p)$(ord(ii) ne ord(i)).. FR(ii,i,p) =L= Fin_U(i)*y(i,p)*y(ii,p);
 e15(i,p)..                        QCout(i,p) =L= Fin_U(i)*y(i,p);
 e16(i,p)..                        QHin(i,p) =L= Fin_U(i)*y(i,p);
