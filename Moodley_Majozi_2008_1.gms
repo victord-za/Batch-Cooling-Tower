@@ -36,6 +36,8 @@ QCin(p)          Cooling water flow rate from cooling tower n into cold water st
 QCout(i,p)       Cooling water flow rate from cold water storage tank into cooling water using operation i at time point p (t.h^-1)
 QHin(i,p)        Cooling water flow rate from cooling water using operation i to hot water storage tank at time point p (t.h^-1)
 QHout(p)         Cooling water flow rate from hot water storage tank to cooling tower n at time point p (t.h^-1)
+Tc(p)            Temperature of cold water storage tank (C)
+Th(p)            Temperature of hot water storage tank (C)
 Tin(i,p)         Inlet cooling water temperature to cooling-water-using operation i at time point p (C)
 Tout(i,p)        Outlet cooling water temperature from cooling-water-using operation i at time point p (C)
 ;
@@ -73,10 +75,12 @@ Tret(p)          Return temperature to cooling water source n (C)
 Scalars
 cp               Specific heat capacity of water (J.(kg.C)^-1)
                  /4187/
-M                Large Value
+M                Large value
                  /999999999/
 T                Cooling water supply temperature from cooling water source n (C)
                  /20/
+Tamb             Ambient temperature (C)
+                 /25/
 ;
 Table    y(i,p)  Binary parameter indicating activity of cooling water using operation i during time slot p
                  p1      p2      p3
@@ -138,28 +142,36 @@ Display CS.l, CR.l, Tret, Fin_U;
 CW.fx = CW.l;
 
 Positive Variables
-mHf               Maximum Amount of Storage Required for Hot Water Across All Time Points (t)
-mCf               Maximum Amount of Storage Required for Cold Water Across All Time Points (t)
+mHf               Maximum amount of storage required for hot water across all time points (t)
+mCf               Maximum amount of storage required for cold water across all time points (t)
 ;
 Free Variables
-sto               Total Amount of Water Storage Required (t)
+sto               Total amount of water storage required (t)
 ;
 Equations
 e20,e21,e22,e23
 ;
-e20(p)..    sum(i,QHin(i,p)) =L= M*yH(p);
-e21(p)..    QHout(p) =L= M*(1-yh(p));
-e22(p)..    QCin(p) =L= M*yC(p);
-e23(p)..    sum(i,QCout(i,p)) =L= M*(1-yC(p));
+e20(i,p)..       QHin(i,p) =L= M*yH(p);
+e21(p)..         QHout(p) =L= M*(1-yh(p));
+e22(p)..         QCin(p) =L= M*yC(p);
+e23(i,p)..       QCout(i,p) =L= M*(1-yC(p));
 Model Moodley_Majozi_2008_1c /e1,e2,e3,e4,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23/;
 Solve Moodley_Majozi_2008_1c using MIP minimising CW;
 
+QHin.fx(i,p) = QHin.l(i,p);
+QHout.fx(p) = QHout.l(p);
+QCin.fx(p) = QCin.l(p);
+QCout.fx(i,p) = QCout.l(i,p);
 Equations
-e24,e25,e26
+e24,e25,e26,e27,e28,e29,e30
 ;
-e24..     mHf =E= smax(p,mH(p));
-e25..     mCf =E= smax(p,mC(p));
-e26..     sto =E= mHf + mCf;
+e24..                   mHf =E= smax(p,mH(p));
+e25..                   mCf =E= smax(p,mC(p));
+e26..                   sto =E= mHf + mCf;
+e27(p)$(ord(p) ne 1)..  Tc(p)*(mC(p-1) + Tau(p)*(QCin(p) - sum(i,QCout(i,p)))) =E= mC(p-1)*Tc(p-1) + QCin(p)*Tau(p)*T - sum(i,QCout(i,p)*Tau(p)*Tc(p-1));
+e28(p)$(ord(p) = 1)..   Tc(p)*(mC0 + Tau(p)*(QCin(p) - sum(i,QCout(i,p)))) =E= mC0*Tamb + QCin(p)*Tau(p)*T - sum(i,QCout(i,p))*Tau(p)*Tamb;
+e29(p)$(ord(p) ne 1)..  Th(p)*(mH(p-1) + Tau(p)*(sum(i,QHin(i,p)) - QHout(p)) =E= mH(p-1)*Th(p-1) + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - QHout(p)*Tau(p)*Th(p-1);
+e30(p)$(ord(p) = 1)..   Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - QHout(p)) =E= mH0*Tamb + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - QHout(p)*Tau(p)*Tamb;
 
 Model Moodley_Majozi_2008_1d /all/;
 Solve Moodley_Majozi_2008_1d using MINLP minimising sto;
