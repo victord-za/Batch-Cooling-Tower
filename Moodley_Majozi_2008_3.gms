@@ -1,37 +1,43 @@
 $Title Moodley_Majozi_2008_3
 $Ontext
-         Simultaneous targeting and design for cooling water systems with multiple cooling water supplies (2008)
+         Adapted from Simultaneous targeting and design for cooling water systems with multiple cooling water supplies (2008)
          A. Moodley & T. Majozi
          Example 3
          Illustrative Example: Multiple Source Targeting
          Unified Targeting - Maximum Reuse
          Targeting Without Cooling Water Return Temperature Limitation
+         NB! The cooling water storage tank temperature is estimated, not calculated
 $Offtext
 Sets
 i                Cooling-water-using operations that complies with a mass and energy balance of a counter current heat exchanger\
                  /i1*i6/
 n                Cooling water sources supplying the cooling water network
                  /n1*n3/
+p                Time points
+                 /p1*p5/
 ;
 Alias
 (i,ii)
 ;
 Positive Variables
-CR(i,n)          Return cooling water flow from cooling-water-using operation i to cooling water source n (t.h^-1)
-CS(i,n)          Cooling water flow supplied from cooling water source n to cooling-water-using operation i (t.h^-1)
-Fin(i)           Total cooling water flow into cooling-water-using operation i including supply and reused water (t.h^-1)
-Fout(i)          Total cooling water flow from cooling-water-using operation i including return and reused water (t.h^-1)
-FR(ii,i)         Reused cooling water flow from any other cooling-water-using operation ip to cooling-water-using operation i (t.h^-1)
+CR(i,n,p)        Return cooling water flow from cooling-water-using operation i to cooling water source n (t.h^-1)
+CS(i,n,p)        Cooling water flow supplied from cooling water source n to cooling-water-using operation i (t.h^-1)
+Fin(i,p)         Total cooling water flow into cooling-water-using operation i including supply and reused water (t.h^-1)
+Fout(i,p)        Total cooling water flow from cooling-water-using operation i including return and reused water (t.h^-1)
+FR(ii,i,p)       Reused cooling water flow from any other cooling-water-using operation ip to cooling-water-using operation i (t.h^-1)
+mC0              Initial mass of cold water in storage tank (t)
+mC(p)            Mass of cold water in storage tank at the start of time point p (t)
+mH0              Initial mass of hot water in storage tank (t)
+mH(p)            Mass of hot water in storage tank at the start of time point p (t)
 OS(n)            Total cooling water flow supplied from cooling water source n (t.h^-1)
-Tin(i)           Inlet cooling water temperature to cooling-water-using operation i (C)
-Tout(i)          Outlet cooling water temperature from cooling-water-using operation i (C)
-;
-Binary Variables
-ys(i,n)          Existance of a direct cooling water stream from cooling water source n to operation i
-yv(i,n)          Existance of a return cooling water stream from operation i direct to cooling water source n
+QCin(n,p)        Cooling water flow rate from cooling tower n into cold water storage tank at time point p (t.h^-1)
+QCout(i,p)       Cooling water flow rate from cold water storage tank into cooling water using operation i at time point p (t.h^-1)
+QHin(i,p)        Cooling water flow rate from cooling water using operation i to hot water storage tank at time point p (t.h^-1)
+QHout(n,p)       Cooling water flow rate from hot water storage tank to cooling tower n at time point p (t.h^-1)
 ;
 Free Variables
 CW               Total cooling water flow supplied from all cooling water sources (t.h^-1)
+sto0             Total initial amount of water in storage tanks (t)
 ;
 Parameters
 Fin_U(i)         Maximum flowrate through cooling-water-using operation i (t.h^-1)
@@ -50,6 +56,12 @@ T(n)             Cooling water supply temperature from cooling water source n (C
                  /n1     20
                   n2     22
                   n3     25/
+Tau(p)           Duration of time slot p (h)
+                 /p1     3
+                  p2     1
+                  p3     4
+                  p4     2
+                  p5     1/
 Tin_U(i)         Limiting inlet temperature to cooling-water-using operation i (C)
                  /i1     30
                   i2     40
@@ -64,33 +76,98 @@ Tout_U(i)        Limiting outlet temperature from cooling-water-using operation 
                   i4     53
                   i5     55
                   i6     45/
-Tret_U(n)        Maximum return temperature to cooling water source n (C)
-                 /n1     52
-                  n2     52
-                  n3     50/
-Tret(n)
+*Tret_U(n)        Maximum return temperature to cooling water source n (C)
+*                 /n1     52
+*                  n2     52
+*                  n3     50/
+*Tret(n,p)
 ;
 Scalars
 cp               Specific heat capacity of water (J.(kg.C)^-1)
                  /4187/
+Tcse             Estimated
+                /22/
+;
+Table    y(i,p)  Binary parameter indicating activity of cooling water using operation i during time slot p
+                 p1      p2      p3      p4      p5
+         i1      1       1       0       0       0
+         i2      1       0       0       0       0
+         i3      0       1       1       1       0
+         i4      0       1       1       1       0
+         i5      0       0       0       1       1
+         i6      0       0       0       1       1
 ;
 Fin_U(i) = Q(i)*3600/(cp*(Tout_U(i)-Tin_U(i)))
 ;
 Equations
-e1,e2,e3,e4,e5,e6,e7,e8,e9
+e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19
 ;
 
-e1..            CW =E= sum(n,OS(n));
-e2(n)..         OS(n) =E= sum(i,CS(i,n));
-e3(n)..         OS(n) =E= sum(i,CR(i,n));
-e4(i)..         Fin(i) =E= sum(n,CS(i,n)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i));
-e5(i)..         Fout(i) =E= sum(n,CR(i,n)) + sum(ii$(ord(ii) ne ord(i)),FR(i,ii));
-e6(i)..         Fin(i) =E= Fout(i);
-e7(n)..         OS(n) =L= OS_U(n);
-e8(i)..         (Q(i)*3600/cp) + sum(n,CS(i,n)*T(n)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i)*Tout_U(ii)) =E= Fout(i)*Tout_U(i);
-e9(i)..         Fin(i) =L= Fin_U(i);
+e1..                              CW =E= sum(n,OS(n));
+e2(n,p)..                         OS(n) =E= sum(i,CS(i,n,p)) + QCin(n,p);
+e3(n,p)..                         OS(n) =E= sum(i,CR(i,n,p)) + QHout(n,p);
+e4(i,p)..                         Fin(i,p) =E= y(i,p)*(sum(n,CS(i,n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)) + QCout(i,p));
+e5(i,p)..                         Fout(i,p) =E= y(i,p)*(sum(n,CR(i,n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(i,ii,p)) + QHin(i,p));
+e6(i,p)..                         Fin(i,p) =E= Fout(i,p);
+e7(n)..                           OS(n) =L= OS_U(n);
+e8(i,p)..                         (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + (QCout(i,p)*Tcse) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout_U(ii)) =E= Fout(i,p)*Tout_U(i);
+e9(i,p)..                         Fin(i,p) =L= Fin_U(i);
+e10(p)$(ord(p) ne 1)..            mC(p) =E= mC(p-1) + sum(n,Tau(p)*QCin(n,p)) - sum(i,Tau(p)*QCout(i,p));
+e11(p)$(ord(p) ne 1)..            mH(p) =E= mH(p-1) + sum(i,Tau(p)*QHin(i,p)) - sum(n,Tau(p)*QHout(n,p));
+e12(p)$(ord(p) = 1)..             mC(p) =E= mC0 + sum(n,Tau(p)*QCin(n,p)) - sum(i,Tau(p)*QCout(i,p));
+e13(p)$(ord(p) = 1)..             mH(p) =E= mH0 + sum(i,Tau(p)*QHin(i,p)) - sum(n,Tau(p)*QHout(n,p));
+e14(ii,i,p)$(ord(ii) ne ord(i)).. FR(ii,i,p) =L= Fin_U(i)*y(i,p)*y(ii,p);
+e15(i,p)..                        QCout(i,p) =L= Fin_U(i)*y(i,p);
+e16(i,p)..                        QHin(i,p) =L= Fin_U(i)*y(i,p);
+e17(i,n,p)..                      CR(i,n,p) =L= OS(n)*y(i,p);
+e18(i,n,p)..                      CS(i,n,p) =L= OS(n)*y(i,p);
+e19..                             sto0 =E= mC0 + mH0;
 
-Model Moodley_Majozi_2008_3 /all/;
-Solve Moodley_Majozi_2008_3 using LP minimizing CW;
-Tret(n) = sum(i, CR.l(i,n)*Tout_U(i))/sum(i,CR.l(i,n));
-Display CS.l, CR.l, Fin_U, Tret;
+*FR.fx(i,ii,p) = 0;
+*Remove above comment to compare when recycle is not allowed.
+Model Moodley_Majozi_2008_3a /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19/;
+Option SYSOUT = ON;
+Options LIMROW = 1e9
+Options LP = CPLEX;
+Moodley_Majozi_2008_3a.optfile=1
+$onecho > cplex.opt
+iis      1
+$offecho
+Solve Moodley_Majozi_2008_3a using LP minimising sto0;
+
+mC0.fx = mC0.l;
+mH0.fx = mH0.l;
+
+Model Moodley_Majozi_2008_3b /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19 /;
+Option SYSOUT = ON;
+Options LIMROW = 1e9
+Options MIP = CPLEX;
+Moodley_Majozi_2008_3b.optfile=1
+$onecho > cplex.opt
+iis      1
+$offecho
+Solve Moodley_Majozi_2008_3b using MIP minimising CW;
+*Tret(p) = sum(i, CR.l(i,p)*Tout_U(i))/CW.l;
+*Tret(n,p) = sum(i, CR.l(i,n,p)*Tout_U(i))/sum(i,CR.l(i,n,p));
+*Display CS.l, CR.l, Fin_U, Tret;
+* Solution method: perhaps let Tcs be a scalar and solve for lp before making it a variable
+Display CS.l, CR.l, Fin_U;
+
+CW.fx = CW.l;
+
+Positive Variables
+mHf               Maximum Amount of Storage Required for Hot Water Across All Time Points (t)
+mCf               Maximum Amount of Storage Required for Cold Water Across All Time Points (t)
+;
+Free Variables
+sto               Total Amount of Water Storage Required (t)
+;
+Equations
+e35,e36,e37
+;
+e35..    mHf =E= smax(p,mH(p));
+e36..    mCf =E= smax(p,mC(p));
+e37..    sto =E= mHf + mCf;
+
+Model Moodley_Majozi_2008_3c /all/;
+Solve Moodley_Majozi_2008_3c using DNLP minimising sto;
