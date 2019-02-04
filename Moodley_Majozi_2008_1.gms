@@ -136,8 +136,6 @@ $onecho > cplex.opt
 iis      1
 $offecho
 Solve Moodley_Majozi_2008_1b using LP minimizing CW;
-Tret(p) = sum(i, CR.l(i,p)*Tout_U(i))/CW.l;
-Display CS.l, CR.l, Tret, Fin_U;
 
 CW.fx = CW.l;
 
@@ -170,8 +168,11 @@ e25..                   mCf =E= smax(p,mC(p));
 e26..                   sto =E= mHf + mCf;
 e27(p)$(ord(p) ne 1)..  Tc(p)*(mC(p-1) + Tau(p)*(QCin(p) - sum(i,QCout(i,p)))) =E= mC(p-1)*Tc(p-1) + QCin(p)*Tau(p)*T - sum(i,QCout(i,p)*Tau(p)*Tc(p-1));
 e28(p)$(ord(p) = 1)..   Tc(p)*(mC0 + Tau(p)*(QCin(p) - sum(i,QCout(i,p)))) =E= mC0*Tamb + QCin(p)*Tau(p)*T - sum(i,QCout(i,p))*Tau(p)*Tamb;
-e29(p)$(ord(p) ne 1)..  Th(p)*(mH(p-1) + Tau(p)*(sum(i,QHin(i,p)) - QHout(p)) =E= mH(p-1)*Th(p-1) + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - QHout(p)*Tau(p)*Th(p-1);
-e30(p)$(ord(p) = 1)..   Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - QHout(p)) =E= mH0*Tamb + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - QHout(p)*Tau(p)*Tamb;
+e29(p)$(ord(p) ne 1)..  Th(p)*(mH(p-1) + Tau(p)*(sum(i,QHin(i,p)) - QHout(p))) =E= mH(p-1)*Th(p-1) + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - QHout(p)*Tau(p)*Th(p-1);
+e30(p)$(ord(p) = 1)..   Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - QHout(p))) =E= mH0*Tamb + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - QHout(p)*Tau(p)*Tamb;
 
 Model Moodley_Majozi_2008_1d /all/;
 Solve Moodley_Majozi_2008_1d using MINLP minimising sto;
+Tret(p)$(ord(p) = 1) = (sum(i, CR.l(i,p)*Tout_U(i)) + (QHout.l(p)*Tamb))/(QHout.l(p) + sum(i,CR.l(i,p)));
+Tret(p)$(ord(p) ne 1) = (sum(i, CR.l(i,p)*Tout_U(i)) + (QHout.l(p)*Th.l(p-1)))/(QHout.l(p) + sum(i,CR.l(i,p)));
+Display Tret;
