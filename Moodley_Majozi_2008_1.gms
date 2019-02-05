@@ -10,8 +10,7 @@ $Ontext
         Solution procedure:
           1) Minimise intial amount of cooling water required in storage.
           2) Minimise amount of recirculating cooling water.
-          3) Ensure that cooling water is not allowed to go in and out of storage tank at the same time point.
-          4) Minimise size of storage tanks.
+          3) Minimise size of storage tanks.
 $Offtext
 Sets
 i                Cooling-water-using operations that complies with a mass and energy balance of a counter current heat exchanger\
@@ -30,8 +29,10 @@ Fout(i,p)        Total cooling water flow from cooling-water-using operation i i
 FR(ii,i,p)       Reused cooling water flow from any other cooling-water-using operation ip to cooling-water-using operation i at time point p (t.h^-1)
 mC0              Initial mass of cold water in storage tank (t)
 mC(p)            Mass of cold water in storage tank at the start of time point p (t)
+mCf              Maximum amount of storage required for cold water across all time points (t)
 mH0              Initial mass of hot water in storage tank (t)
 mH(p)            Mass of hot water in storage tank at the start of time point p (t)
+mHf              Maximum amount of storage required for hot water across all time points (t)
 QCin(p)          Cooling water flow rate from cooling tower n into cold water storage tank at time point p (t.h^-1)
 QCout(i,p)       Cooling water flow rate from cold water storage tank into cooling water using operation i at time point p (t.h^-1)
 QHin(i,p)        Cooling water flow rate from cooling water using operation i to hot water storage tank at time point p (t.h^-1)
@@ -47,6 +48,7 @@ yH(p)            Binary variable controlling inlet and outlet of hot storage tan
 ;
 Free Variables
 CW               Total cooling water flow supplied from all cooling water sources (t.h^-1)
+sto              Total amount of water storage required (t)
 sto0             Total initial amount of water in storage tanks (t)
 ;
 Parameters
@@ -92,7 +94,7 @@ Table    y(i,p)  Binary parameter indicating activity of cooling water using ope
 Fin_U(i) = Q(i)*3600/(cp*(Tout_U(i)-Tin_L(i)))
 ;
 Equations
-e1,e2,e3,e4,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19
+e1,e2,e3,e4,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23
 ;
 e1(p)..                           CW =E= sum(i,CS(i,p)) + QCin(p);
 e2(p)..                           CW =E= sum(i,CR(i,p)) + QHout(p);
@@ -111,10 +113,13 @@ e16(i,p)..                        QHin(i,p) =L= Fin_U(i)*y(i,p);
 e17(i,p)..                        CR(i,p) =L= CW*y(i,p);
 e18(i,p)..                        CS(i,p) =L= CW*y(i,p);
 e19..                             sto0 =E= mC0 + mH0;
-
+e20(i,p)..                        QHin(i,p) =L= M*yH(p);
+e21(p)..                          QHout(p) =L= M*(1-yh(p));
+e22(p)..                          QCin(p) =L= M*yC(p);
+e23(i,p)..                        QCout(i,p) =L= M*(1-yC(p));
 *FR.fx(i,ii,p) = 0;
 *Remove above comment to compare when recycle is not allowed.
-Model Moodley_Majozi_2008_1a /e1,e2,e3,e4,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19/;
+Model Moodley_Majozi_2008_1a /e1,e2,e3,e4,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options LP = CPLEX;
@@ -122,12 +127,12 @@ Moodley_Majozi_2008_1a.optfile=1
 $onecho > cplex.opt
 iis      1
 $offecho
-Solve Moodley_Majozi_2008_1a using LP minimizing sto0;
+Solve Moodley_Majozi_2008_1a using MIP minimizing sto0;
 
 mC0.fx = mC0.l;
 mH0.fx = mH0.l;
 
-Model Moodley_Majozi_2008_1b /e1,e2,e3,e4,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19/;
+Model Moodley_Majozi_2008_1b /e1,e2,e3,e4,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options LP = CPLEX;
@@ -135,31 +140,16 @@ Moodley_Majozi_2008_1b.optfile=1
 $onecho > cplex.opt
 iis      1
 $offecho
-Solve Moodley_Majozi_2008_1b using LP minimizing CW;
+Solve Moodley_Majozi_2008_1b using MIP minimizing CW;
 
 CW.fx = CW.l;
-
-Positive Variables
-mHf               Maximum amount of storage required for hot water across all time points (t)
-mCf               Maximum amount of storage required for cold water across all time points (t)
-;
-Free Variables
-sto               Total amount of water storage required (t)
-;
-Equations
-e20,e21,e22,e23
-;
-e20(i,p)..       QHin(i,p) =L= M*yH(p);
-e21(p)..         QHout(p) =L= M*(1-yh(p));
-e22(p)..         QCin(p) =L= M*yC(p);
-e23(i,p)..       QCout(i,p) =L= M*(1-yC(p));
-Model Moodley_Majozi_2008_1c /e1,e2,e3,e4,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23/;
-Solve Moodley_Majozi_2008_1c using MIP minimising CW;
 
 QHin.fx(i,p) = QHin.l(i,p);
 QHout.fx(p) = QHout.l(p);
 QCin.fx(p) = QCin.l(p);
 QCout.fx(i,p) = QCout.l(i,p);
+mH.fx('p3') = 0;
+
 Equations
 e24,e25,e26,e27,e28,e29,e30
 ;
@@ -170,9 +160,8 @@ e27(p)$(ord(p) ne 1)..  Tc(p)*(mC(p-1) + Tau(p)*(QCin(p) - sum(i,QCout(i,p)))) =
 e28(p)$(ord(p) = 1)..   Tc(p)*(mC0 + Tau(p)*(QCin(p) - sum(i,QCout(i,p)))) =E= mC0*Tamb + QCin(p)*Tau(p)*T - sum(i,QCout(i,p))*Tau(p)*Tamb;
 e29(p)$(ord(p) ne 1)..  Th(p)*(mH(p-1) + Tau(p)*(sum(i,QHin(i,p)) - QHout(p))) =E= mH(p-1)*Th(p-1) + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - QHout(p)*Tau(p)*Th(p-1);
 e30(p)$(ord(p) = 1)..   Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - QHout(p))) =E= mH0*Tamb + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - QHout(p)*Tau(p)*Tamb;
-
-Model Moodley_Majozi_2008_1d /all/;
-Solve Moodley_Majozi_2008_1d using MINLP minimising sto;
-Tret(p)$(ord(p) = 1) = (sum(i, CR.l(i,p)*Tout_U(i)) + (QHout.l(p)*Tamb))/(QHout.l(p) + sum(i,CR.l(i,p)));
-Tret(p)$(ord(p) ne 1) = (sum(i, CR.l(i,p)*Tout_U(i)) + (QHout.l(p)*Th.l(p-1)))/(QHout.l(p) + sum(i,CR.l(i,p)));
-Display Tret;
+Model Moodley_Majozi_2008_1c /all/;
+Solve Moodley_Majozi_2008_1c using MINLP minimising sto;
+*Tret(p)$(ord(p) = 1) = (sum(i, CR.l(i,p)*Tout_U(i)) + (QHout.l(p)*Tamb))/(QHout.l(p) + sum(i,CR.l(i,p)));
+*Tret(p)$(ord(p) ne 1) = (sum(i, CR.l(i,p)*Tout_U(i)) + (QHout.l(p)*Th.l(p-1)))/(QHout.l(p) + sum(i,CR.l(i,p)));
+*Display Tret;
