@@ -6,7 +6,13 @@ $Ontext
          Illustrative Example: Multiple Source Targeting
          Unified Targeting - Maximum Reuse
          Targeting Without Cooling Water Return Temperature Limitation
-         NB! The cooling water storage tank temperature is estimated, not calculated
+         Solution procedure:
+          a) Minimise intial amount of cooling water required in storage assuming storage temperature.
+          b) Minimise amount of recirculating cooling water.
+          c) Minimise size of storage tanks and calculate storage temperature.
+          d) Minimise amount of recirculating cooling water utilising storage temperature.
+          e) Minimise size of storage tanks.
+         Check if binary variables are controlling storage tanks as intended.
 $Offtext
 Sets
 i                Cooling-water-using operations that complies with a mass and energy balance of a counter current heat exchanger\
@@ -40,14 +46,15 @@ Tc(p)            Temperature of cold water storage tank (C)
 Th(p)            Temperature of hot water storage tank (C)
 ;
 Binary Variables
-yC(p)            Binary variable controlling inlet and outlet of cold storage tank water.
-yH(p)            Binary variable controlling inlet and outlet of hot storage tank water.
+yCin(p)            Binary variable controlling inlet and outlet of cold storage tank water.
+yCout(p)
+yHin(p)            Binary variable controlling inlet and outlet of hot storage tank water.
+yHout(p)
 ;
 Free Variables
 CW               Total cooling water flow supplied from all cooling water sources (t.h^-1)
 sto
 sto0             Total initial amount of water in storage tanks (t)
-obj
 ;
 Parameters
 Fin_U(i)         Maximum flowrate through cooling-water-using operation i (t.h^-1)
@@ -121,7 +128,7 @@ Table    y(i,p)  Binary parameter indicating activity of cooling water using ope
 Fin_U(i) = Q(i)*3600/(cp*(Tout_U(i)-Tin_U(i)))
 ;
 Equations
-e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23
+e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25
 ;
 
 e1..                              CW =E= sum(n,OS(n));
@@ -143,84 +150,112 @@ e16(i,p)..                        QHin(i,p) =L= Fin_U(i)*y(i,p);
 e17(i,n,p)..                      CR(i,n,p) =L= OS(n)*y(i,p);
 e18(i,n,p)..                      CS(i,n,p) =L= OS(n)*y(i,p);
 e19..                             sto0 =E= mC0 + mH0;
-e20(i,p)..       QHin(i,p) =L= M*yH(p);
-e21(n,p)..       QHout(n,p) =L= M*(1-yh(p));
-e22(n,p)..       QCin(n,p) =L= M*yC(p);
-e23(i,p)..       QCout(i,p) =L= M*(1-yC(p));
+
+$Ontext
+e20(i,p)..                        QHin(i,p) =L= M*yH(p);
+e21(n,p)..                        QHout(n,p) =L= M*(1-yH(p));
+e22(n,p)..                        QCin(n,p) =L= M*yC(p);
+e23(i,p)..                        QCout(i,p) =L= M*(1-yC(p));
+$Offtext
+
+e20(i,p)..                        QHin(i,p) =L= M*yHin(p);
+e21(n,p)..                        QHout(n,p) =L= M*yHout(p);
+e22(n,p)..                        QCin(n,p) =L= M*yCin(p);
+e23(i,p)..                        QCout(i,p) =L= M*yCout(p);
+e24(p)..                          yCin(p) + yCout(p) =L= 1;
+e25(p)..                          yHin(p) + yHout(p) =L= 1;
+
 
 *FR.fx(i,ii,p) = 0;
 *Remove above comment to compare when recycle is not allowed.
-Model Moodley_Majozi_2008_3a /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23/;
+
+Model Moodley_Majozi_2008_3a /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9
 Options LP = CPLEX;
 Moodley_Majozi_2008_3a.optfile=1
 $onecho > cplex.opt
-iis      1
+iis              1
 $offecho
 Solve Moodley_Majozi_2008_3a using MIP minimising sto0;
 
 mC0.fx = mC0.l;
 mH0.fx = mH0.l;
 
-Model Moodley_Majozi_2008_3b /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23/;
+Model Moodley_Majozi_2008_3b /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9
 Options MIP = CPLEX;
 Moodley_Majozi_2008_3b.optfile=1
 $onecho > cplex.opt
-iis      1
+iis              1
 $offecho
 Solve Moodley_Majozi_2008_3b using MIP minimising CW;
-*Tret(p) = sum(i, CR.l(i,p)*Tout_U(i))/CW.l;
-*Tret(n,p) = sum(i, CR.l(i,n,p)*Tout_U(i))/sum(i,CR.l(i,n,p));
-*Display CS.l, CR.l, Fin_U, Tret;
-* Solution method: perhaps let Tcs be a scalar and solve for lp before making it a variable
 
 CW.fx = CW.l;
+
 Equations
-e24,e25,e26,e27,e28,e29,e30
+e26,e27,e28,e29,e30,e31,e32
 ;
-e24..                    mHf =E= smax(p,mH(p));
-e25..                    mCf =E= smax(p,mC(p));
-e26..                    sto =E= mHf + mCf;
-e27(p)$(ord(p) ne 1)..  Tc(p)*(mC(p-1) + Tau(p)*(sum(n,QCin(n,p)) - sum(i,QCout(i,p)))) =E= mC(p-1)*Tc(p-1) + sum(n,QCin(n,p)*T(n))*Tau(p) - sum(i,QCout(i,p)*Tau(p)*Tc(p-1));
-e28(p)$(ord(p) = 1)..   Tc(p)*(mC0 + Tau(p)*(sum(n,QCin(n,p)) - sum(i,QCout(i,p)))) =E= mC0*Tamb + sum(n,QCin(n,p)*T(n))*Tau(p) - sum(i,QCout(i,p))*Tau(p)*Tamb;
-e29(p)$(ord(p) ne 1)..  Th(p)*(mH(p-1) + Tau(p)*(sum(i,QHin(i,p)) - sum(n,QHout(n,p)))) =E= mH(p-1)*Th(p-1) + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - sum(n,QHout(n,p))*Tau(p)*Th(p-1);
-e30(p)$(ord(p) = 1)..   Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - sum(n,QHout(n,p)))) =E= mH0*Tamb + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - sum(n,QHout(n,p))*Tau(p)*Tamb;
-Model Moodley_Majozi_2008_3c /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30/;
-Option SYSOUT = ON;
+e26..                    mHf =E= smax(p,mH(p));
+e27..                    mCf =E= smax(p,mC(p));
+e28..                    sto =E= mHf + mCf;
+e29(p)$(ord(p) ne 1)..  0.1*(Tc(p)*(mC(p-1) + Tau(p)*(sum(n,QCin(n,p)) - sum(i,QCout(i,p))))) =E= 0.1*(mC(p-1)*Tc(p-1) + sum(n,QCin(n,p)*T(n))*Tau(p) - sum(i,QCout(i,p)*Tau(p)*Tc(p-1)));
+e30(p)$(ord(p) = 1)..   Tc(p)*(mC0 + Tau(p)*(sum(n,QCin(n,p)) - sum(i,QCout(i,p)))) =E= mC0*Tamb + sum(n,QCin(n,p)*T(n))*Tau(p) - sum(i,QCout(i,p))*Tau(p)*Tamb;
+e31(p)$(ord(p) ne 1)..  Th(p)*(mH(p-1) + Tau(p)*(sum(i,QHin(i,p)) - sum(n,QHout(n,p)))) =E= mH(p-1)*Th(p-1) + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - sum(n,QHout(n,p))*Tau(p)*Th(p-1);
+e32(p)$(ord(p) = 1)..   Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - sum(n,QHout(n,p)))) =E= mH0*Tamb + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - sum(n,QHout(n,p))*Tau(p)*Tamb;
+Model Moodley_Majozi_2008_3c /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32/;
+Options SYSOUT = ON;
 Options LIMROW = 1e9
 Options MIP = CPLEX;
 Moodley_Majozi_2008_3c.optfile=1
 $onecho > cplex.opt
-iis      1
+iis              1
+$offecho
+$onecho > dicopt.opt
+maxcycles        10000
 $offecho
 Solve Moodley_Majozi_2008_3c using MINLP minimising sto;
 
-*QHin.fx(i,p) = QHin.l(i,p);
-*QHout.fx(n,p) = QHout.l(n,p);
-*QCin.fx(n,p) = QCin.l(n,p);
-*QCout.fx(i,p) = QCout.l(i,p);
+* Freeing the fixed variables
+CW.lo = -inf;
+CW.up = inf;
+mC0.lo = -inf;
+mC0.up = inf;
+mH0.lo = -inf;
+mH0.up = inf;
 
-*Positive Variables
-*mHf               Maximum Amount of Storage Required for Hot Water Across All Time Points (t)
-*mCf               Maximum Amount of Storage Required for Cold Water Across All Time Points (t)
-*;
-*Free Variables
-*sto               Total Amount of Water Storage Required (t)
-*;
-*Equations
-*e24,e25,e26
-*,e27,e28,e29,e30
-*;
-*e24..    mHf =E= smax(p,mH(p));
-*e25..    mCf =E= smax(p,mC(p));
-*e26..    sto =E= mHf + mCf;
-*e27(p)$(ord(p) ne 1)..  Tc(p)*(mC(p-1) + Tau(p)*(sum(n,QCin(n,p)) - sum(i,QCout(i,p)))) =E= mC(p-1)*Tc(p-1) + sum(n,QCin(n,p)*T(n))*Tau(p) - sum(i,QCout(i,p)*Tau(p)*Tc(p-1));
-*e28(p)$(ord(p) = 1)..   Tc(p)*(mC0 + Tau(p)*(sum(n,QCin(n,p)) - sum(i,QCout(i,p)))) =E= mC0*Tamb + sum(n,QCin(n,p)*T(n))*Tau(p) - sum(i,QCout(i,p))*Tau(p)*Tamb;
-*e29(p)$(ord(p) ne 1)..  Th(p)*(mH(p-1) + Tau(p)*(sum(i,QHin(i,p)) - sum(n,QHout(n,p)))) =E= mH(p-1)*Th(p-1) + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - sum(n,QHout(n,p))*Tau(p)*Th(p-1);
-*e30(p)$(ord(p) = 1)..   Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - sum(n,QHout(n,p)))) =E= mH0*Tamb + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - sum(n,QHout(n,p))*Tau(p)*Tamb;
+Equations
+e33,e34
+;
+e33(i,p)$(ord(p) ne 1)..           0.1*((y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + (QCout(i,p)*Tc(p-1)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout_U(ii))) =E= 0.1*Fout(i,p)*Tout_U(i);
+e34(i,p)$(ord(p) = 1)..            (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + (QCout(i,p)*Tamb) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout_U(ii)) =E= Fout(i,p)*Tout_U(i);
+Model Moodley_Majozi_2008_3d /e1,e2,e3,e4,e5,e6,e7,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e29,e30,e31,e32,e33,e34/;
+Option SYSOUT = ON;
+Options LIMROW = 1e9
+Options MINLP = DICOPT;
+Options MIP = CPLEX;
+Moodley_Majozi_2008_3d.optfile=1
+$onecho > cplex.opt
+iis              1
+$offecho
+$onecho > dicopt.opt
+maxcycles        10000
+$offecho
+Solve Moodley_Majozi_2008_3d using MINLP minimising CW;
 
-*Model Moodley_Majozi_2008_3d /all/;
-*Solve Moodley_Majozi_2008_3d using MINLP minimising sto;
+CW.fx = CW.l;
+
+Model Moodley_Majozi_2008_3e /e1,e2,e3,e4,e5,e6,e7,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34/;
+Options SYSOUT = ON;
+Options LIMROW = 1e9
+Options MINLP = DICOPT;
+Options MIP = CPLEX;
+Moodley_Majozi_2008_3e.optfile=1
+$onecho > cplex.opt
+iis              1
+$offecho
+$onecho > dicopt.opt
+maxcycles        10000
+$offecho
+Solve Moodley_Majozi_2008_3e using MINLP minimising sto;
