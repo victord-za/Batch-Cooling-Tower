@@ -10,7 +10,7 @@ $Ontext
         Solution procedure:
           1) Minimise intial amount of cooling water required in storage.
           2) Minimise amount of recirculating cooling water.
-          3) Minimise size of storage tanks.
+          3) Minimise size of storage tanks and calculate storage temperature.
 $Offtext
 Sets
 i                Cooling-water-using operations that complies with a mass and energy balance of a counter current heat exchanger\
