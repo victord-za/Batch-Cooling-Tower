@@ -162,6 +162,6 @@ e29(p)$(ord(p) ne 1)..  Th(p)*(mH(p-1) + Tau(p)*(sum(i,QHin(i,p)) - QHout(p))) =
 e30(p)$(ord(p) = 1)..   Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - QHout(p))) =E= mH0*Tamb + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - QHout(p)*Tau(p)*Tamb;
 Model Moodley_Majozi_2008_1c /all/;
 Solve Moodley_Majozi_2008_1c using MINLP minimising sto;
-*Tret(p)$(ord(p) = 1) = (sum(i, CR.l(i,p)*Tout_U(i)) + (QHout.l(p)*Tamb))/(QHout.l(p) + sum(i,CR.l(i,p)));
-*Tret(p)$(ord(p) ne 1) = (sum(i, CR.l(i,p)*Tout_U(i)) + (QHout.l(p)*Th.l(p-1)))/(QHout.l(p) + sum(i,CR.l(i,p)));
-*Display Tret;
+Tret(p)$(ord(p) = 1) = (sum(i, CR.l(i,p)*Tout_U(i)) + (QHout.l(p)*Tamb))/(QHout.l(p) + sum(i,CR.l(i,p)));
+Tret(p)$(ord(p) ne 1) = (sum(i, CR.l(i,p)*Tout_U(i)) + (QHout.l(p)*Th.l(p-1)))/(QHout.l(p) + sum(i,CR.l(i,p)));
+Display Tret;

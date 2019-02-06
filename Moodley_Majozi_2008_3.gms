@@ -97,7 +97,7 @@ Tout_U(i)        Limiting outlet temperature from cooling-water-using operation 
 *                 /n1     52
 *                  n2     52
 *                  n3     50/
-*Tret(n,p)
+Tret(n,p)
 ;
 Scalars
 cp               Specific heat capacity of water (J.(kg.C)^-1)
@@ -259,3 +259,6 @@ $onecho > dicopt.opt
 maxcycles        10000
 $offecho
 Solve Moodley_Majozi_2008_3e using MINLP minimising sto;
+Tret(n,p)$(ord(p) = 1) = (sum(i, CR.l(i,n,p)*Tout_U(i)) + (QHout.l(n,p)*Tamb))/(QHout.l(n,p) + sum(i,CR.l(i,n,p)));
+Tret(n,p)$(ord(p) ne 1) = (sum(i, CR.l(i,n,p)*Tout_U(i)) + (QHout.l(n,p)*Th.l(p-1)))/(QHout.l(n,p) + sum(i,CR.l(i,n,p)));
+Display Tret;
