@@ -46,14 +46,14 @@ Tc(p)            Temperature of cold water storage tank (C)
 Th(p)            Temperature of hot water storage tank (C)
 ;
 Binary Variables
-yCin(p)            Binary variable controlling inlet and outlet of cold storage tank water.
-yCout(p)
-yHin(p)            Binary variable controlling inlet and outlet of hot storage tank water.
-yHout(p)
+yCin(p)            Binary variable controlling inlet of cold storage tank water.
+yCout(p)           Binary variable controlling outlet of cold storage tank water.
+yHin(p)            Binary variable controlling inlet of hot storage tank water.
+yHout(p)           Binary variable controlling outlet of hot storage tank water.
 ;
 Free Variables
 CW               Total cooling water flow supplied from all cooling water sources (t.h^-1)
-sto
+sto              Design capacity of both storage tanks (t)
 sto0             Total initial amount of water in storage tanks (t)
 ;
 Parameters
@@ -104,9 +104,9 @@ cp               Specific heat capacity of water (J.(kg.C)^-1)
                  /4187/
 M                Large value
                  /999999999/
-Tamb
+Tamb             Ambient temperature (C)
                  /25/
-Tcse             Estimated
+Tcse             Estimated cold storage tank temperature (C)
                  /22/
 ;
 Table    y(i,p)  Binary parameter indicating activity of cooling water using operation i during time slot p
@@ -125,7 +125,7 @@ Table    y(i,p)  Binary parameter indicating activity of cooling water using ope
          i5      0       0       1       1       1
          i6      0       0       0       0       1
 ;
-Fin_U(i) = Q(i)*3600/(cp*(Tout_U(i)-Tin_U(i)))
+Fin_U(i) = Q(i)*3600/(cp*(Tout_U(i)-Tin_U(i)));
 ;
 Equations
 e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25
