@@ -93,11 +93,8 @@ Tout_U(i)        Limiting outlet temperature from cooling-water-using operation 
                   i4     53
                   i5     55
                   i6     45/
-*Tret_U(n)        Maximum return temperature to cooling water source n (C)
-*                 /n1     52
-*                  n2     52
-*                  n3     50/
-Tret(n,p)
+Tin(i,p)         Inlet temperature to cooling-water-using operation i at time point p (C)
+Tret(n,p)        Return temperature to cooling tower n at time point p (C)
 ;
 Scalars
 cp               Specific heat capacity of water (J.(kg.C)^-1)
@@ -261,4 +258,7 @@ $offecho
 Solve Moodley_Majozi_2008_3e using MINLP minimising sto;
 Tret(n,p)$(ord(p) = 1) = (sum(i, CR.l(i,n,p)*Tout_U(i)) + (QHout.l(n,p)*Tamb))/(QHout.l(n,p) + sum(i,CR.l(i,n,p)));
 Tret(n,p)$(ord(p) ne 1) = (sum(i, CR.l(i,n,p)*Tout_U(i)) + (QHout.l(n,p)*Th.l(p-1)))/(QHout.l(n,p) + sum(i,CR.l(i,n,p)));
-Display Tret;
+Tin(i,p)$(ord(p) ne 1) = (sum(n,CS.l(i,n,p)*T(n)) + sum(ii$(ord(ii) ne ord(i)),FR.l(ii,i,p)*Tout_U(ii)) + QCout.l(i,p)*Tc.l(p-1))/Fin.l(i,p);
+Tin(i,p)$(ord(p) = 1) = (sum(n,CS.l(i,n,p)*T(n)) + sum(ii$(ord(ii) ne ord(i)),FR.l(ii,i,p)*Tout_U(ii)) + QCout.l(i,p)*Tamb)/Fin.l(i,p);
+
+Display Tret,Tin;
