@@ -123,8 +123,9 @@ M                Large value
                  /999999999/
 Tamb             Ambient temperature (C)
                  /25/
-Tcse             Estimated cold storage tank temperature (C)
+Tce              Estimated cold storage tank temperature (C)
                  /22/
+The              /50/
 Tout_L           Limiting outlet temperature from cooling-water-using operation i (C)
                  /30/
 ;
@@ -169,19 +170,25 @@ e16(i,p)..                        QHin(i,p) =L= Fin_U(i)*y(i,p);
 e17(i,n,p)..                      CR(i,n,p) =L= OS(n)*y(i,p);
 e18(i,n,p)..                      CS(i,n,p) =L= OS(n)*y(i,p);
 e19..                             sto0 =E= mC0 + mH0;
-*e20(i,p)..                        QHin(i,p) =L= M*yHin(p);
-*e21(n,p)..                        QHout(n,p) =L= M*yHout(p);
-*e22(n,p)..                        QCin(n,p) =L= M*yCin(p);
-*e23(i,p)..                        QCout(i,p) =L= M*yCout(p);
-*e24(p)..                          yCin(p) + yCout(p) =L= 1;
-*e25(p)..                          yHin(p) + yHout(p) =L= 1;
+e20(i,p)..                        QHin(i,p) =L= M*yHin(p);
+e21(n,p)..                        QHout(n,p) =L= M*yHout(p);
+e22(n,p)..                        QCin(n,p) =L= M*yCin(p);
+e23(i,p)..                        QCout(i,p) =L= M*yCout(p);
+e24(p)..                          yCin(p) + yCout(p) =L= 1;
+e25(p)..                          yHin(p) + yHout(p) =L= 1;
 
 $Ontext
 -------------------------------Linear Subproblem--------------------------------
 $Offtext
 
 e26(n,p)..                        sum(i,G1(i,n,p)) + G4(n,p) =L= Tret_U(n)*OS(n);
-e27(i,p)..                        (Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + sum(ii$(ord(ii) ne ord(i)),G2(ii,i,p)) + G5(i,p) =E= G3(i,p);
+e27(i,p)..                        (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + sum(ii$(ord(ii) ne ord(i)),G2(ii,i,p)) + G5(i,p) =E= G3(i,p);
+
+
+$Ontext
+e26(n,p)..                        sum(i,G1(i,n,p)) + QHout(n,p)*The =L= Tret_U(n)*OS(n);
+e27(i,p)..                        (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + sum(ii$(ord(ii) ne ord(i)),G2(ii,i,p)) + QCout(i,p)*Tce =E= G3(i,p);
+$Offtext
 
 e28(i,n,p)..                      G1(i,n,p) =G= y(i,p)*((Fin_U(i)*Tout(i,p)) + (CR(i,n,p)*Tout_U(i)) - (Fin_U(i)*Tout_U(i)));
 *e29(i,n,p)..                      G1(i,n,p) =L= Fin_U(i)*Tout(i,p) + CR(i,n,p)*Tout_L - Fin_U(i)*Tout_L;
@@ -198,9 +205,10 @@ e35(ii,i,p)$(ord(ii) ne ord(i)).. G2(ii,i,p) =G= y(i,p)*y(ii,p)*FR(ii,i,p)*Tout_
 *Perhap G2 =G= RHS should always be 0
 e36(i,p)..                        G3(i,p) =G= y(i,p)*((Fin_U(i)*Tout(i,p)) + (Fin(i,p)*Tout_U(i)) - (Fin_U(i)*Tout_U(i)));
 e37(i,p)..                        G3(i,p) =L= y(i,p)*((Fin_U(i)*Tout(i,p)) + (Fin(i,p)*Tout_L) - (Fin_U(i)*Tout_L));
-e38(i,p)..                        G3(i,p) =L= y(i,p)*Fin(i,p)*Tout_U(i);
-e39(i,p)..                        G3(i,p) =G= y(i,p)*Fin(i,p)*Tout_L;
+e38(i,p)..                        G3(i,p) =L= Fin(i,p)*Tout_U(i);
+e39(i,p)..                        G3(i,p) =G= Fin(i,p)*Tout_L;
 *Same
+*$Ontext
 e40(n,p)$(ord(p) ne 1)..          G4(n,p) =G= (OS_U(n)*Th(p-1)) + (QHout(n,p)*Thmax) - (OS_U(n)*Thmax);
 e401(n,p)$(ord(p) = 1)..          G4(n,p) =G= (OS_U(n)*Tamb) + (QHout(n,p)*Thmax) - (OS_U(n)*Thmax);
 e41(n,p)$(ord(p) ne 1)..          G4(n,p) =L= (OS_U(n)*Th(p-1)) + (QHout(n,p)*0) - (OS_U(n)*0);
@@ -213,13 +221,13 @@ e441(i,p)$(ord(p) = 1)..          G5(i,p) =G= (Fin_U(i)*Tamb) + (QCout(i,p)*Tamb
 e45(i,p)$(ord(p) ne 1)..          G5(i,p) =L= (Fin_U(i)*Tc(p-1)) + (QCout(i,p)*0) - (Fin_U(i)*0);
 e451(i,p)$(ord(p) = 1)..          G5(i,p) =L= (Fin_U(i)*Tamb) + (QCout(i,p)*0) - (Fin_U(i)*0);
 e46(i,p)..                        G5(i,p) =L= QCout(i,p)*Tamb;
-*e47(i,p)..                        G5(i,p) =G= QCout(i,p)*0;
+e47(i,p)..                        G5(i,p) =G= QCout(i,p)*0;
 *Try this linearisation, otherwise use estimated paramters for Tc and Th
-
+*$Offtext
 $Ontext
 ------------------------------Nonlinear Subproblem------------------------------
 $Offtext
-$Ontext
+
 e48..                             mHf =E= smax(p,mH(p));
 e49..                             mCf =E= smax(p,mC(p));
 e50..                             sto =E= mHf + mCf;
@@ -228,72 +236,73 @@ e52(p)$(ord(p) = 1)..             Tc(p)*(mC0 + Tau(p)*(sum(n,QCin(n,p)) - sum(i,
 e53(p)$(ord(p) ne 1)..            Th(p)*(mH(p-1) + Tau(p)*(sum(i,QHin(i,p)) - sum(n,QHout(n,p)))) =E= mH(p-1)*Th(p-1) + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - sum(n,QHout(n,p))*Tau(p)*Th(p-1);
 e54(p)$(ord(p) = 1)..             Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - sum(n,QHout(n,p)))) =E= mH0*Tamb + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - sum(n,QHout(n,p))*Tau(p)*Tamb;
 
-e55(i,p)$(ord(p) ne 1)..          0.1*((y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + (QCout(i,p)*Tc(p-1)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout_U(ii))) =E= 0.1*Fout(i,p)*Tout_U(i);
-e56(i,p)$(ord(p) = 1)..           (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + (QCout(i,p)*Tamb) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout_U(ii)) =E= Fout(i,p)*Tout_U(i);
+e55(i,p)$(ord(p) ne 1)..          0.1*((y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + (QCout(i,p)*Tc(p-1)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.1*Fout(i,p)*Tout(i,p);
+e56(i,p)$(ord(p) = 1)..           (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + (QCout(i,p)*Tamb) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) =E= Fout(i,p)*Tout(i,p);
 
 e57(n,p)..                        Tret(n,p)*OS(n) =E= sum(i, CR(i,n,p)*Tout(i,p)) + (QHout(n,p)*Th(p));
 e58(n,p)..                        Tret(n,p) =L= Tret_U(n);
 e59(i,p)..                        Tout(i,p) =G= Tout_L*y(i,p);
 
-*$Ontext
+$Ontext
 -----------------------------------Boundaries-----------------------------------
-*$Offtext
+$Offtext
 
-Tout.LO(i,p) = Tout_L;
 Fin.UP(i,p) = Fin_U(i);
 Tin.UP(i,p) = Tin_U(i);
 Tout.UP(i,p) = Tout_U(i);
 Tret.UP(n,p) = Tret_U(n);
 OS.UP(n) = OS_U(n);
-CW.LO = 40;
+CW.LO = 30;
+Th.UP(p) = Thmax;
+Tc.UP(p) = Tamb;
 * The lower bound makes the problem solvable.
 
-*$Ontext
+
+$Ontext
 Model Moodley_Majozi_2008_4_LP /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23/;
 Model Moodley_Majozi_2008_4_NLP /e1,e2,e3,e4,e5,e6,e7,e8,e9,e24,e25,e26,e27/;
 Solve Moodley_Majozi_2008_4_LP using LP minimizing CW;
 Solve Moodley_Majozi_2008_4_NLP using NLP minimizing CW;
 $Offtext
 
-Model Moodley_Majozi_2008_4a /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e401,e411,e441,e451/;
+Model Moodley_Majozi_2008_4a /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e401,e411,e441,e451/;
 Option SYSOUT = ON;
-Options LIMROW = 1e9
+Options LIMROW = 1e9;
 Options LP = CPLEX;
 Moodley_Majozi_2008_4a.optfile=1
 $onecho > cplex.opt
 iis              1
 $offecho
 Solve Moodley_Majozi_2008_4a using MIP minimising sto0;
-$Ontext
 mC0.fx = mC0.l;
 mH0.fx = mH0.l;
 
-Model Moodley_Majozi_2008_4b /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47/;
+Model Moodley_Majozi_2008_4b /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e401,e411,e441,e451/;
 Option SYSOUT = ON;
-Options LIMROW = 1e9
+Options LIMROW = 1e9;
 Options MIP = CPLEX;
 Moodley_Majozi_2008_4b.optfile=1
-*$onecho > cplex.opt
+$onecho > cplex.opt
 iis              1
-*$offecho
+$offecho
 Solve Moodley_Majozi_2008_4b using MIP minimising CW;
 
 CW.fx = CW.l;
-
-Model Moodley_Majozi_2008_4c /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e48,e49,e50,e51,e52,e53,e54/;
+*$Ontext
+Model Moodley_Majozi_2008_4c /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e401,e411,e441,e451,e47,e48,e49,e50,e51,e52,e53,e54/;
 *Include all equations?
 Options SYSOUT = ON;
-Options LIMROW = 1e9
+Options LIMROW = 1e9;
 Options MIP = CPLEX;
-Moodley_Majozi_2008_4c.optfile=1
+*Moodley_Majozi_2008_4c.optfile=1
 *$onecho > cplex.opt
-iis              1
+*iis              1
 *$offecho
 *$onecho > dicopt.opt
-maxcycles        10000
+*maxcycles        10000
 *$offecho
 Solve Moodley_Majozi_2008_4c using MINLP minimising sto;
-
+$Ontext
 * Freeing the fixed variables
 CW.lo = -inf;
 CW.up = inf;
@@ -314,10 +323,9 @@ iis              1
 *$onecho > dicopt.opt
 maxcycles        10000
 *$offecho
-Solve Moodley_Majozi_2008_4d using MINLP minimising CW;
+Solve Moodley_Majozi_2008_4d using MINLP minimising sto0;
 
 CW.fx = CW.l;
-
 Model Moodley_Majozi_2008_4e /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59/;
 Options SYSOUT = ON;
 Options LIMROW = 1e9
