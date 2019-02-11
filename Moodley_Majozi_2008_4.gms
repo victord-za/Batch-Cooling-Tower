@@ -14,11 +14,13 @@ $Ontext
                  2) Solve LP minimising CW
                  3) Solve MINLP minimising sto and calculating Tc and Th
                  4) Free sto0 and CW
-                 5) Solve MINLP minimising CW
-                 6) Solve MINLP minimising sto
+                 5) Solve MINLP minimising sto0
+                 6) Solve MINLP minimising CW
+                 7) Solve MINLP minimising sto
 
          Alternatively, solve Tret as a parameter as in Moodley.
-         Check errors on Tout, CS and G2
+         Check if this formulation allows for back-recycling loops
+         Check whether CW could not have been reduced by making use of storage?
 $Offtext
 Sets
 i                Cooling-water-using operations that complies with a mass and energy balance of a counter current heat exchanger\
@@ -239,7 +241,7 @@ e54(p)$(ord(p) = 1)..             Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - sum(n,
 e55(i,p)$(ord(p) ne 1)..          0.1*((y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + (QCout(i,p)*Tc(p-1)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.1*Fout(i,p)*Tout(i,p);
 e56(i,p)$(ord(p) = 1)..           (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + (QCout(i,p)*Tamb) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) =E= Fout(i,p)*Tout(i,p);
 
-e57(n,p)..                        Tret(n,p)*OS(n) =E= sum(i, CR(i,n,p)*Tout(i,p)) + (QHout(n,p)*Th(p));
+e57(n,p)..                        Tret(n,p)*OS(n) =E= sum(i,CR(i,n,p)*Tout(i,p)) + (QHout(n,p)*Th(p));
 e58(n,p)..                        Tret(n,p) =L= Tret_U(n);
 e59(i,p)..                        Tout(i,p) =G= Tout_L*y(i,p);
 
@@ -252,18 +254,11 @@ Tin.UP(i,p) = Tin_U(i);
 Tout.UP(i,p) = Tout_U(i);
 Tret.UP(n,p) = Tret_U(n);
 OS.UP(n) = OS_U(n);
-CW.LO = 30;
+CW.LO = 0;
 Th.UP(p) = Thmax;
 Tc.UP(p) = Tamb;
-* The lower bound makes the problem solvable.
-
-
-$Ontext
-Model Moodley_Majozi_2008_4_LP /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23/;
-Model Moodley_Majozi_2008_4_NLP /e1,e2,e3,e4,e5,e6,e7,e8,e9,e24,e25,e26,e27/;
-Solve Moodley_Majozi_2008_4_LP using LP minimizing CW;
-Solve Moodley_Majozi_2008_4_NLP using NLP minimizing CW;
-$Offtext
+*FR.fx(i,ii,p) = 0;
+*Remove above comment to compare when recycle is not allowed.
 
 Model Moodley_Majozi_2008_4a /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e401,e411,e441,e451/;
 Option SYSOUT = ON;
@@ -288,7 +283,7 @@ $offecho
 Solve Moodley_Majozi_2008_4b using MIP minimising CW;
 
 CW.fx = CW.l;
-*$Ontext
+
 Model Moodley_Majozi_2008_4c /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e401,e411,e441,e451,e47,e48,e49,e50,e51,e52,e53,e54/;
 *Include all equations?
 Options SYSOUT = ON;
@@ -302,13 +297,13 @@ Options MIP = CPLEX;
 *maxcycles        10000
 *$offecho
 Solve Moodley_Majozi_2008_4c using MINLP minimising sto;
-$Ontext
+
 * Freeing the fixed variables
-CW.lo = -inf;
+CW.lo = CW.l;
 CW.up = inf;
-mC0.lo = -inf;
+mC0.lo = 0;
 mC0.up = inf;
-mH0.lo = -inf;
+mH0.lo = 0;
 mH0.up = inf;
 
 Model Moodley_Majozi_2008_4d /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59/;
@@ -317,26 +312,42 @@ Options LIMROW = 1e9
 Options MINLP = DICOPT;
 Options MIP = CPLEX;
 Moodley_Majozi_2008_4d.optfile=1
-*$onecho > cplex.opt
+$onecho > cplex.opt
 iis              1
-*$offecho
-*$onecho > dicopt.opt
+$offecho
+$onecho > dicopt.opt
 maxcycles        10000
-*$offecho
+$offecho
 Solve Moodley_Majozi_2008_4d using MINLP minimising sto0;
 
-CW.fx = CW.l;
+sto0.fx = sto0.l;
+
 Model Moodley_Majozi_2008_4e /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59/;
 Options SYSOUT = ON;
 Options LIMROW = 1e9
 Options MINLP = DICOPT;
 Options MIP = CPLEX;
 Moodley_Majozi_2008_4e.optfile=1
-*$onecho > cplex.opt
+$onecho > cplex.opt
 iis              1
-*$offecho
-*$onecho > dicopt.opt
+$offecho
+$onecho > dicopt.opt
 maxcycles        10000
-*$offecho
-Solve Moodley_Majozi_2008_4e using MINLP minimising sto;
-$Offtext
+$offecho
+Solve Moodley_Majozi_2008_4e using MINLP minimising CW;
+
+CW.fx = CW.l;
+
+Model Moodley_Majozi_2008_4f /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59/;
+Options SYSOUT = ON;
+Options LIMROW = 1e9
+Options MINLP = DICOPT;
+Options MIP = CPLEX;
+Moodley_Majozi_2008_4f.optfile=1
+$onecho > cplex.opt
+iis              1
+$offecho
+$onecho > dicopt.opt
+maxcycles        10000
+$offecho
+Solve Moodley_Majozi_2008_4f using MINLP minimising sto;
