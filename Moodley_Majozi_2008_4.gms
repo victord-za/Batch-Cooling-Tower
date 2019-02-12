@@ -34,11 +34,11 @@ Alias
 (i,ii)
 ;
 Positive Variables
-CR(i,n,p)        Return cooling water flow from cooling-water-using operation i to cooling water source n (t.h^-1)
-CS(i,n,p)        Cooling water flow supplied from cooling water source n to cooling-water-using operation i (t.h^-1)
-Fin(i,p)         Total cooling water flow into cooling-water-using operation i including supply and reused water (t.h^-1)
-Fout(i,p)        Total cooling water flow from cooling-water-using operation i including return and reused water (t.h^-1)
-FR(ii,i,p)       Reused cooling water flow from any other cooling-water-using operation ip to cooling-water-using operation i (t.h^-1)
+CR(i,n,p)        Return cooling water flow from cooling-water-using operation i to cooling water source n at time point p (t.h^-1)
+CS(i,n,p)        Cooling water flow supplied from cooling water source n to cooling-water-using operation i at time point p (t.h^-1)
+Fin(i,p)         Total cooling water flow into cooling-water-using operation i including supply and reused water at time point p(t.h^-1)
+Fout(i,p)        Total cooling water flow from cooling-water-using operation i including return and reused water at time point p (t.h^-1)
+FR(ii,i,p)       Reused cooling water flow from any other cooling-water-using operation ip to cooling-water-using operation i at time point p (t.h^-1)
 mC0              Initial mass of cold water in storage tank (t)
 mC(p)            Mass of cold water in storage tank at the start of time point p (t)
 mH0              Initial mass of hot water in storage tank (t)
@@ -50,8 +50,8 @@ QCin(n,p)        Cooling water flow rate from cooling tower n into cold water st
 QCout(i,p)       Cooling water flow rate from cold water storage tank into cooling water using operation i at time point p (t.h^-1)
 QHin(i,p)        Cooling water flow rate from cooling water using operation i to hot water storage tank at time point p (t.h^-1)
 QHout(n,p)       Cooling water flow rate from hot water storage tank to cooling tower n at time point p (t.h^-1)
-Tc(p)            Temperature of cold water storage tank (C)
-Th(p)            Temperature of hot water storage tank (C)
+Tc(p)            Temperature of cold water storage tank at time point p (C)
+Th(p)            Temperature of hot water storage tank at time point p(C)
 
 
 G1(i,n,p)        Linearisation variable 1 for term CR(i.n.p)*Tout(i.p)
@@ -59,9 +59,8 @@ G2(ii,i,p)       Linearisation variable 2 for term FR(ii.i.p)*Tout(ii.p)
 G3(i,p)          Linearisation variable 3 for term Fin(i.p)*Tout(i.p)
 G4(n,p)          Linearisation variable 4 for term QHout(n.p)*Th(p)
 G5(i,p)          Linearisation variable 5 for term QCout(i.p)*Tc(p)
-Tin(i,p)         Inlet cooling water temperature to cooling-water-using operation i (C)
-Tout(i,p)        Outlet cooling water temperature from cooling-water-using operation i (C)
-Tret(n,p)        Return temperature to cooling water source n (C)
+Tout(i,p)        Outlet cooling water temperature from cooling-water-using operation i at time point p(C)
+TWin(n,p)        Return temperature to cooling water source n at time point p (C)
 ;
 Binary Variables
 yCin(p)          Binary variable controlling inlet of cold storage tank water.
@@ -87,7 +86,7 @@ Q(i)             Duty of cooling-water-using operation i (kW)
                   i4     555
                   i5     345
                   i6     700/
-T(n)             Cooling water supply temperature from cooling water source n (C)
+TWout(n)         Cooling water supply temperature from cooling water source n (C)
                  /n1     20
                   n2     22
                   n3     25/
@@ -98,6 +97,7 @@ Tau(p)           Duration of time slot p (h)
                   p4     2
                   p5     1/
 Thmax            Maximum temperature of hot storage tank (C)
+Tin(i,p)         Inlet cooling water temperature to cooling-water-using operation i at time point p (C)
 Tin_U(i)         Limiting inlet temperature to cooling-water-using operation i (C)
                  /i1     30
                   i2     40
@@ -112,7 +112,7 @@ Tout_U(i)        Limiting outlet temperature from cooling-water-using operation 
                   i4     53
                   i5     55
                   i6     45/
-Tret_U(n)        Maximum return temperature to cooling water source n (C)
+TWin_U(n)        Maximum return temperature to cooling water source n (C)
                  /n1     52
                   n2     52
                   n3     50/
@@ -142,7 +142,6 @@ Table    y(i,p)  Binary parameter indicating activity of cooling water using ope
 ;
 Fin_U(i) = Q(i)*3600/(cp*(Tout_U(i)-Tin_U(i)));
 Thmax = smax(i,Tout_U(i));
-CW.l =40;
 Equations
 e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25       General Model
 e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47          Linear Model
@@ -183,8 +182,8 @@ $Ontext
 -------------------------------Linear Subproblem--------------------------------
 $Offtext
 
-e26(n,p)..                        sum(i,G1(i,n,p)) + G4(n,p) =L= Tret_U(n)*OS(n);
-e27(i,p)..                        (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + sum(ii$(ord(ii) ne ord(i)),G2(ii,i,p)) + G5(i,p) =E= G3(i,p);
+e26(n,p)..                        sum(i,G1(i,n,p)) + G4(n,p) =L= TWin_U(n)*OS(n);
+e27(i,p)..                        (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),G2(ii,i,p)) + G5(i,p) =E= G3(i,p);
 
 
 $Ontext
@@ -233,16 +232,16 @@ $Offtext
 e48..                             mHf =E= smax(p,mH(p));
 e49..                             mCf =E= smax(p,mC(p));
 e50..                             sto =E= mHf + mCf;
-e51(p)$(ord(p) ne 1)..            0.1*(Tc(p)*(mC(p-1) + Tau(p)*(sum(n,QCin(n,p)) - sum(i,QCout(i,p))))) =E= 0.1*(mC(p-1)*Tc(p-1) + sum(n,QCin(n,p)*T(n))*Tau(p) - sum(i,QCout(i,p)*Tau(p)*Tc(p-1)));
-e52(p)$(ord(p) = 1)..             Tc(p)*(mC0 + Tau(p)*(sum(n,QCin(n,p)) - sum(i,QCout(i,p)))) =E= mC0*Tamb + sum(n,QCin(n,p)*T(n))*Tau(p) - sum(i,QCout(i,p))*Tau(p)*Tamb;
+e51(p)$(ord(p) ne 1)..            0.1*(Tc(p)*(mC(p-1) + Tau(p)*(sum(n,QCin(n,p)) - sum(i,QCout(i,p))))) =E= 0.1*(mC(p-1)*Tc(p-1) + sum(n,QCin(n,p)*TWout(n))*Tau(p) - sum(i,QCout(i,p)*Tau(p)*Tc(p-1)));
+e52(p)$(ord(p) = 1)..             Tc(p)*(mC0 + Tau(p)*(sum(n,QCin(n,p)) - sum(i,QCout(i,p)))) =E= mC0*Tamb + sum(n,QCin(n,p)*TWout(n))*Tau(p) - sum(i,QCout(i,p))*Tau(p)*Tamb;
 e53(p)$(ord(p) ne 1)..            Th(p)*(mH(p-1) + Tau(p)*(sum(i,QHin(i,p)) - sum(n,QHout(n,p)))) =E= mH(p-1)*Th(p-1) + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - sum(n,QHout(n,p))*Tau(p)*Th(p-1);
 e54(p)$(ord(p) = 1)..             Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - sum(n,QHout(n,p)))) =E= mH0*Tamb + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - sum(n,QHout(n,p))*Tau(p)*Tamb;
 
-e55(i,p)$(ord(p) ne 1)..          0.1*((y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + (QCout(i,p)*Tc(p-1)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.1*Fout(i,p)*Tout(i,p);
-e56(i,p)$(ord(p) = 1)..           (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + (QCout(i,p)*Tamb) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) =E= Fout(i,p)*Tout(i,p);
+e55(i,p)$(ord(p) ne 1)..          0.1*((y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*TWout(n)) + (QCout(i,p)*Tc(p-1)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.1*Fout(i,p)*Tout(i,p);
+e56(i,p)$(ord(p) = 1)..           (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*TWout(n)) + (QCout(i,p)*Tamb) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) =E= Fout(i,p)*Tout(i,p);
 
-e57(n,p)..                        Tret(n,p)*OS(n) =E= sum(i,CR(i,n,p)*Tout(i,p)) + (QHout(n,p)*Th(p));
-e58(n,p)..                        Tret(n,p) =L= Tret_U(n);
+e57(n,p)..                        TWin(n,p)*OS(n) =E= sum(i,CR(i,n,p)*Tout(i,p)) + (QHout(n,p)*Th(p));
+e58(n,p)..                        TWin(n,p) =L= TWin_U(n);
 e59(i,p)..                        Tout(i,p) =G= Tout_L*y(i,p);
 
 $Ontext
@@ -250,9 +249,8 @@ $Ontext
 $Offtext
 
 Fin.UP(i,p) = Fin_U(i);
-Tin.UP(i,p) = Tin_U(i);
 Tout.UP(i,p) = Tout_U(i);
-Tret.UP(n,p) = Tret_U(n);
+TWin.UP(n,p) = TWin_U(n);
 OS.UP(n) = OS_U(n);
 CW.LO = 0;
 Th.UP(p) = Thmax;
@@ -351,3 +349,6 @@ $onecho > dicopt.opt
 maxcycles        10000
 $offecho
 Solve Moodley_Majozi_2008_4f using MINLP minimising sto;
+Tin(i,p)$(ord(p) ne 1) = (sum(n,CS.l(i,n,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),FR.l(ii,i,p)*Tout.l(ii,p)) + QCout.l(i,p)*Tc.l(p-1))/Fin.l(i,p);
+Tin(i,p)$(ord(p) = 1) = (sum(n,CS.l(i,n,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),FR.l(ii,i,p)*Tout.l(ii,p)) + QCout.l(i,p)*Tamb)/Fin.l(i,p);
+Display Tin;
