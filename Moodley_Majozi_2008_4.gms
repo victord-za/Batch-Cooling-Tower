@@ -59,6 +59,7 @@ G2(ii,i,p)       Linearisation variable 2 for term FR(ii.i.p)*Tout(ii.p)
 G3(i,p)          Linearisation variable 3 for term Fin(i.p)*Tout(i.p)
 G4(n,p)          Linearisation variable 4 for term QHout(n.p)*Th(p)
 G5(i,p)          Linearisation variable 5 for term QCout(i.p)*Tc(p)
+*Tin(i,p)         Inlet cooling water temperature to cooling-water-using operation i at time point p (C)
 Tout(i,p)        Outlet cooling water temperature from cooling-water-using operation i at time point p(C)
 TWin(n,p)        Return temperature to cooling water source n at time point p (C)
 ;
@@ -95,7 +96,8 @@ Tau(p)           Duration of time slot p (h)
                   p2     1
                   p3     4
                   p4     2
-                  p5     1/
+                  p5     2/
+Tcmin
 Thmax            Maximum temperature of hot storage tank (C)
 Tin(i,p)         Inlet cooling water temperature to cooling-water-using operation i at time point p (C)
 Tin_U(i)         Limiting inlet temperature to cooling-water-using operation i (C)
@@ -140,12 +142,14 @@ Table    y(i,p)  Binary parameter indicating activity of cooling water using ope
          i5      0       0       1       1       1
          i6      0       0       0       0       1
 ;
+Tcmin = smin(n,TWout(n));
 Fin_U(i) = Q(i)*3600/(cp*(Tout_U(i)-Tin_U(i)));
+* Is Fin_U calculated correctly?
 Thmax = smax(i,Tout_U(i));
 Equations
 e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25       General Model
 e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47          Linear Model
-e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59                                                  Nonlinear Model
+e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59,e60,e61                                          Nonlinear Model
 e401,e411,e441,e451
 ;
 $Ontext
@@ -160,7 +164,7 @@ e5(i,p)..                         Fout(i,p) =E= y(i,p)*(sum(n,CR(i,n,p)) + sum(i
 e6(i,p)..                         Fin(i,p) =E= Fout(i,p);
 e7(n)..                           OS(n) =L= OS_U(n);
 e8(i,p)..                         Tout(i,p) =L= Tout_U(i)*y(i,p);
-e9(i,p)..                         Fin(i,p) =L= Fin_U(i)*y(i,p);
+e9(i,p)..                         Fin(i,p) =L= (Fin_U(i))*y(i,p);
 e10(p)$(ord(p) ne 1)..            mC(p) =E= mC(p-1) + sum(n,Tau(p)*QCin(n,p)) - sum(i,Tau(p)*QCout(i,p));
 e11(p)$(ord(p) ne 1)..            mH(p) =E= mH(p-1) + sum(i,Tau(p)*QHin(i,p)) - sum(n,Tau(p)*QHout(n,p));
 e12(p)$(ord(p) = 1)..             mC(p) =E= mC0 + sum(n,Tau(p)*QCin(n,p)) - sum(i,Tau(p)*QCout(i,p));
@@ -191,6 +195,8 @@ e26(n,p)..                        sum(i,G1(i,n,p)) + QHout(n,p)*The =L= Tret_U(n
 e27(i,p)..                        (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + sum(ii$(ord(ii) ne ord(i)),G2(ii,i,p)) + QCout(i,p)*Tce =E= G3(i,p);
 $Offtext
 
+
+* Should I multiply these by the binary paramter?
 e28(i,n,p)..                      G1(i,n,p) =G= y(i,p)*((Fin_U(i)*Tout(i,p)) + (CR(i,n,p)*Tout_U(i)) - (Fin_U(i)*Tout_U(i)));
 *e29(i,n,p)..                      G1(i,n,p) =L= Fin_U(i)*Tout(i,p) + CR(i,n,p)*Tout_L - Fin_U(i)*Tout_L;
 e29(i,n,p)..                      G1(i,n,p) =L= y(i,p)*(Fin_U(i)*Tout(i,p) + CR(i,n,p)*Tout_L - Fin_U(i)*Tout_L);
@@ -206,8 +212,8 @@ e35(ii,i,p)$(ord(ii) ne ord(i)).. G2(ii,i,p) =G= y(i,p)*y(ii,p)*FR(ii,i,p)*Tout_
 *Perhap G2 =G= RHS should always be 0
 e36(i,p)..                        G3(i,p) =G= y(i,p)*((Fin_U(i)*Tout(i,p)) + (Fin(i,p)*Tout_U(i)) - (Fin_U(i)*Tout_U(i)));
 e37(i,p)..                        G3(i,p) =L= y(i,p)*((Fin_U(i)*Tout(i,p)) + (Fin(i,p)*Tout_L) - (Fin_U(i)*Tout_L));
-e38(i,p)..                        G3(i,p) =L= Fin(i,p)*Tout_U(i);
-e39(i,p)..                        G3(i,p) =G= Fin(i,p)*Tout_L;
+e38(i,p)..                        G3(i,p) =L= y(i,p)*Fin(i,p)*Tout_U(i);
+e39(i,p)..                        G3(i,p) =G= y(i,p)*Fin(i,p)*Tout_L;
 *Same
 *$Ontext
 e40(n,p)$(ord(p) ne 1)..          G4(n,p) =G= (OS_U(n)*Th(p-1)) + (QHout(n,p)*Thmax) - (OS_U(n)*Thmax);
@@ -244,21 +250,25 @@ e57(n,p)..                        TWin(n,p)*OS(n) =E= sum(i,CR(i,n,p)*Tout(i,p))
 e58(n,p)..                        TWin(n,p) =L= TWin_U(n);
 e59(i,p)..                        Tout(i,p) =G= Tout_L*y(i,p);
 
+e60(i,p)$(ord(p) ne 1)..          Fin(i,p)*Tin(i,p) =E= (sum(n,CS(i,n,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) + QCout(i,p)*Tc(p-1));
+e61(i,p)$(ord(p) = 1)..           Fin(i,p)*Tin(i,p) =E= (sum(n,CS(i,n,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) + QCout(i,p)*Tamb);
+
 $Ontext
 -----------------------------------Boundaries-----------------------------------
 $Offtext
 
 Fin.UP(i,p) = Fin_U(i);
+*Tin.UP(i,p) = Tin_U(i);
 Tout.UP(i,p) = Tout_U(i);
 TWin.UP(n,p) = TWin_U(n);
 OS.UP(n) = OS_U(n);
 CW.LO = 0;
 Th.UP(p) = Thmax;
 Tc.UP(p) = Tamb;
-*FR.fx(i,ii,p) = 0;
+*FR.FX(i,ii,p) = 0;
 *Remove above comment to compare when recycle is not allowed.
 
-Model Moodley_Majozi_2008_4a /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e401,e411,e441,e451/;
+Model Moodley_Majozi_2008_4a /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e401,e411,e441,e451/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options LP = CPLEX;
@@ -267,8 +277,8 @@ $onecho > cplex.opt
 iis              1
 $offecho
 Solve Moodley_Majozi_2008_4a using MIP minimising sto0;
-mC0.fx = mC0.l;
-mH0.fx = mH0.l;
+mC0.FX = mC0.L;
+mH0.FX = mH0.L;
 
 Model Moodley_Majozi_2008_4b /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e401,e411,e441,e451/;
 Option SYSOUT = ON;
@@ -280,7 +290,7 @@ iis              1
 $offecho
 Solve Moodley_Majozi_2008_4b using MIP minimising CW;
 
-CW.fx = CW.l;
+CW.FX = CW.L;
 
 Model Moodley_Majozi_2008_4c /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e401,e411,e441,e451,e47,e48,e49,e50,e51,e52,e53,e54/;
 *Include all equations?
@@ -297,12 +307,15 @@ Options MIP = CPLEX;
 Solve Moodley_Majozi_2008_4c using MINLP minimising sto;
 
 * Freeing the fixed variables
-CW.lo = CW.l;
-CW.up = inf;
-mC0.lo = 0;
-mC0.up = inf;
-mH0.lo = 0;
-mH0.up = inf;
+*CW.LO = CW.L;
+CW.LO = 60;
+CW.UP = inf;
+mC0.LO = 0;
+mC0.UP = inf;
+mH0.LO = 0;
+mH0.UP = inf;
+
+QCin.FX(n,p) = 0;
 
 Model Moodley_Majozi_2008_4d /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59/;
 Option SYSOUT = ON;
@@ -314,11 +327,11 @@ $onecho > cplex.opt
 iis              1
 $offecho
 $onecho > dicopt.opt
-maxcycles        10000
+maxcycles        100000
 $offecho
 Solve Moodley_Majozi_2008_4d using MINLP minimising sto0;
 
-sto0.fx = sto0.l;
+sto0.FX = sto0.L;
 
 Model Moodley_Majozi_2008_4e /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59/;
 Options SYSOUT = ON;
@@ -334,7 +347,7 @@ maxcycles        10000
 $offecho
 Solve Moodley_Majozi_2008_4e using MINLP minimising CW;
 
-CW.fx = CW.l;
+CW.FX = CW.L;
 
 Model Moodley_Majozi_2008_4f /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59/;
 Options SYSOUT = ON;
@@ -349,6 +362,6 @@ $onecho > dicopt.opt
 maxcycles        10000
 $offecho
 Solve Moodley_Majozi_2008_4f using MINLP minimising sto;
-Tin(i,p)$(ord(p) ne 1) = (sum(n,CS.l(i,n,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),FR.l(ii,i,p)*Tout.l(ii,p)) + QCout.l(i,p)*Tc.l(p-1))/Fin.l(i,p);
-Tin(i,p)$(ord(p) = 1) = (sum(n,CS.l(i,n,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),FR.l(ii,i,p)*Tout.l(ii,p)) + QCout.l(i,p)*Tamb)/Fin.l(i,p);
-Display Tin;
+Tin(i,p)$(ord(p) ne 1) = (sum(n,CS.L(i,n,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),FR.L(ii,i,p)*Tout.L(ii,p)) + QCout.L(i,p)*Tc.L(p-1))/Fin.L(i,p);
+Tin(i,p)$(ord(p) = 1) = (sum(n,CS.L(i,n,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),FR.L(ii,i,p)*Tout.L(ii,p)) + QCout.L(i,p)*Tamb)/Fin.L(i,p);
+Display Tin,Fin_U;
