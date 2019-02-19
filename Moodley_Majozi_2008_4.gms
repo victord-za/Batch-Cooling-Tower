@@ -168,8 +168,8 @@ $Ontext
 $Offtext
 
 e1..                              CW =E= sum(n,OS(n));
-e2(n,p)..                         OS(n) =E= sum(i,CS(i,n,p)) + QCin(n,p) - M(n,p);
-e3(n,p)..                         OS(n) =E= sum(i,CR(i,n,p)) + QHout(n,p) - D(n) - E(n,p) - B(n,p);
+e2(n,p)..                         OS(n) =E= sum(i,CS(i,n,p)) + QCin(n,p) - M(n,p) + B(n,p);
+e3(n,p)..                         OS(n) =E= sum(i,CR(i,n,p)) + QHout(n,p) - D(n) - E(n,p);
 e4(i,p)..                         Fin(i,p) =E= y(i,p)*(sum(n,CS(i,n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)) + QCout(i,p));
 e5(i,p)..                         Fout(i,p) =E= y(i,p)*(sum(n,CR(i,n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(i,ii,p)) + QHin(i,p));
 e6(i,p)..                         Fin(i,p) =E= Fout(i,p);
@@ -183,8 +183,8 @@ e13(p)$(ord(p) = 1)..             mH(p) =E= mH0 + sum(i,Tau(p)*QHin(i,p)) - sum(
 e14(ii,i,p)$(ord(ii) ne ord(i)).. FR(ii,i,p) =L= Fin_U(i)*y(i,p)*y(ii,p);
 e15(i,p)..                        QCout(i,p) =L= Fin_U(i)*y(i,p);
 e16(i,p)..                        QHin(i,p) =L= Fin_U(i)*y(i,p);
-e17(i,n,p)..                      CR(i,n,p) =L= (OS(n) + M(n,p))*y(i,p);
-e18(i,n,p)..                      CS(i,n,p) =L= (OS(n) + M(n,p))*y(i,p);
+e17(i,n,p)..                      CR(i,n,p) =L= (OS(n) + D(n) + E(n,p))*y(i,p);
+e18(i,n,p)..                      CS(i,n,p) =L= (OS(n) + M(n,p) - B(n,p))*y(i,p);
 e19..                             sto0 =E= mC0 + mH0;
 e20(i,p)..                        QHin(i,p) =L= BM*yHin(p);
 e21(n,p)..                        QHout(n,p) =L= BM*yHout(p);
@@ -204,7 +204,7 @@ $Offtext
 
 e26(n,p)..                        sum(i,G1(i,n,p)) + G5(n,p) =L= TWin_U(n)*OS(n);
 e27(i,p)..                        (y(i,p)*Q(i)*3600/cp) + sum(n,G4(i,n,p)) + sum(ii$(ord(ii) ne ord(i)),G2(ii,i,p)) + G6(i,p) =E= G3(i,p);
-ee10(n,p)..                       sum(i,G4(i,n,p)) =E= M(n,p)*Tamb + sum(i,CS(i,n,p))*TWout(n);
+ee10(n,p)..                       sum(i,G4(i,n,p)) =E= M(n,p)*Tamb + (OS(n) - B(n,p))*TWout(n);
 
 $Ontext
 e26(n,p)..                        sum(i,G1(i,n,p)) + QHout(n,p)*The =L= Tret_U(n)*OS(n);
@@ -266,6 +266,7 @@ $Offtext
 e48..                             mHf =E= smax(p,mH(p));
 e49..                             mCf =E= smax(p,mC(p));
 e50..                             sto =E= mHf + mCf;
+
 e51(p)$(ord(p) ne 1)..            0.1*(Tc(p)*(mC(p-1) + Tau(p)*(sum(n,QCin(n,p)) - sum(i,QCout(i,p))))) =E= 0.1*(mC(p-1)*Tc(p-1) + sum(n,QCin(n,p)*Ts(n,p))*Tau(p) - sum(i,QCout(i,p)*Tau(p)*Tc(p-1)));
 e52(p)$(ord(p) = 1)..             Tc(p)*(mC0 + Tau(p)*(sum(n,QCin(n,p)) - sum(i,QCout(i,p)))) =E= mC0*Tamb + sum(n,QCin(n,p)*Ts(n,p))*Tau(p) - sum(i,QCout(i,p))*Tau(p)*Tamb;
 e53(p)$(ord(p) ne 1)..            Th(p)*(mH(p-1) + Tau(p)*(sum(i,QHin(i,p)) - sum(n,QHout(n,p)))) =E= mH(p-1)*Th(p-1) + sum(i,QHin(i,p)*Tau(p)*Tout(i,p)) - sum(n,QHout(n,p))*Tau(p)*Th(p-1);
@@ -274,7 +275,7 @@ e54(p)$(ord(p) = 1)..             Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - sum(n,
 e55(i,p)$(ord(p) ne 1)..          0.1*((y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*Ts(n,p)) + (QCout(i,p)*Tc(p-1)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.1*Fout(i,p)*Tout(i,p);
 e56(i,p)$(ord(p) = 1)..           (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*Ts(n,p)) + (QCout(i,p)*Tamb) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) =E= Fout(i,p)*Tout(i,p);
 
-e57(n,p)..                        TWin(n,p)*OS(n) =E= sum(i,(CR(i,n,p) - M(n,p))*Tout(i,p)) + (QHout(n,p)*Th(p));
+e57(n,p)..                        TWin(n,p)*OS(n) =E= sum(i,(CR(i,n,p) - D(n) - E(n,p))*Tout(i,p)) + (QHout(n,p)*Th(p));
 e58(n,p)..                        TWin(n,p) =L= TWin_U(n);
 e59(i,p)..                        Tout(i,p) =G= Tout_L*y(i,p);
 
@@ -282,7 +283,7 @@ e60(i,p)$(ord(p) ne 1)..          Fin(i,p)*Tin(i,p) =E= (sum(n,CS(i,n,p)*Ts(n,p)
 e61(i,p)$(ord(p) = 1)..           Fin(i,p)*Tin(i,p) =E= (sum(n,CS(i,n,p)*Ts(n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) + QCout(i,p)*Tamb);
 
 ee21(n,p)..                       E(n,p) =E= 0.00085*1.8*OS(n)*(TWin(n,p)-TWout(n));
-ee5(n,p)..                        Ts(n,p)*sum(i,CS(i,n,p)) =E= M(n,p)*Tamb + sum(i,CS(i,n,p))*TWout(n);
+ee5(n,p)..                        Ts(n,p)*sum(i,CS(i,n,p)) =E= M(n,p)*Tamb + (OS(n) - B(n,p))*TWout(n);
 
 $Ontext
 -----------------------------------Boundaries-----------------------------------
