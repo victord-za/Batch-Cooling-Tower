@@ -393,6 +393,6 @@ $onecho > dicopt.opt
 maxcycles        10000
 $offecho
 Solve Moodley_Majozi_2008_4f using MINLP minimising sto;
-Tin(i,p)$(ord(p) ne 1) = (sum(n,CS.L(i,n,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),FR.L(ii,i,p)*Tout.L(ii,p)) + QCout.L(i,p)*Tc.L(p-1))/Fin.L(i,p);
-Tin(i,p)$(ord(p) = 1) = (sum(n,CS.L(i,n,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),FR.L(ii,i,p)*Tout.L(ii,p)) + QCout.L(i,p)*Tamb)/Fin.L(i,p);
+Tin(i,p)$(ord(p) ne 1) = (sum(n,CS.L(i,n,p)*Ts.L(n,p)) + sum(ii$(ord(ii) ne ord(i)),FR.L(ii,i,p)*Tout.L(ii,p)) + QCout.L(i,p)*Tc.L(p-1))/Fin.L(i,p);
+Tin(i,p)$(ord(p) = 1) = (sum(n,CS.L(i,n,p)*Ts.L(n,p)) + sum(ii$(ord(ii) ne ord(i)),FR.L(ii,i,p)*Tout.L(ii,p)) + QCout.L(i,p)*Tamb)/Fin.L(i,p);
 Display Tin,Fin_U;
