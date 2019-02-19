@@ -203,12 +203,14 @@ $Ontext
 $Offtext
 
 e26(n,p)..                        sum(i,G1(i,n,p)) + G5(n,p) =L= TWin_U(n)*OS(n);
-e27(i,p)..                        (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),G2(ii,i,p)) + G6(i,p) =E= G3(i,p);
+e27(i,p)..                        (y(i,p)*Q(i)*3600/cp) + sum(n,G4(i,n,p)) + sum(ii$(ord(ii) ne ord(i)),G2(ii,i,p)) + G6(i,p) =E= G3(i,p);
 
 
 $Ontext
 e26(n,p)..                        sum(i,G1(i,n,p)) + QHout(n,p)*The =L= Tret_U(n)*OS(n);
 e27(i,p)..                        (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*T(n)) + sum(ii$(ord(ii) ne ord(i)),G2(ii,i,p)) + QCout(i,p)*Tce =E= G3(i,p);
+e26(n,p)..                        sum(i,G1(i,n,p)) + G5(n,p) =L= TWin_U(n)*OS(n);
+e27(i,p)..                        (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),G2(ii,i,p)) + G6(i,p) =E= G3(i,p);
 $Offtext
 
 
@@ -232,8 +234,8 @@ e38(i,p)..                        G3(i,p) =L= y(i,p)*Fin(i,p)*Tout_U(i);
 e39(i,p)..                        G3(i,p) =G= y(i,p)*Fin(i,p)*Tout_L;
 *Same
 
-eg1(i,n,p)..                      G4(i,n,p) =G= y(i,p)*OS_U(n)*Ts(n,p) + CS(i,n,p)*Tamb - OS_U(n)*Tamb;
-eg2(i,n,p)..                      G4(i,n,p) =L= y(i,p)*OS_U(n)*Ts(n,p) + CS(i,n,p)*Tcmin - OS_U(n)*Tcmin;
+eg1(i,n,p)..                      G4(i,n,p) =G= y(i,p)*(Fin_U(i)*Ts(n,p) + CS(i,n,p)*Tamb - Fin_U(i)*Tamb);
+eg2(i,n,p)..                      G4(i,n,p) =L= y(i,p)*(Fin_U(i)*Ts(n,p) + CS(i,n,p)*Tcmin - Fin_U(i)*Tcmin);
 eg3(i,n,p)..                      G4(i,n,p) =L= y(i,p)*CS(i,n,p)*Tamb;
 eg4(i,n,p)..                      G4(i,n,p) =G= y(i,p)*CS(i,n,p)*Tcmin;
 
@@ -260,20 +262,21 @@ $Offtext
 e48..                             mHf =E= smax(p,mH(p));
 e49..                             mCf =E= smax(p,mC(p));
 e50..                             sto =E= mHf + mCf;
-e51(p)$(ord(p) ne 1)..            0.1*(Tc(p)*(mC(p-1) + Tau(p)*(sum(n,QCin(n,p)) - sum(i,QCout(i,p))))) =E= 0.1*(mC(p-1)*Tc(p-1) + sum(n,QCin(n,p)*TWout(n))*Tau(p) - sum(i,QCout(i,p)*Tau(p)*Tc(p-1)));
-e52(p)$(ord(p) = 1)..             Tc(p)*(mC0 + Tau(p)*(sum(n,QCin(n,p)) - sum(i,QCout(i,p)))) =E= mC0*Tamb + sum(n,QCin(n,p)*TWout(n))*Tau(p) - sum(i,QCout(i,p))*Tau(p)*Tamb;
-e53(p)$(ord(p) ne 1)..            Th(p)*(mH(p-1) + Tau(p)*(sum(i,QHin(i,p)) - sum(n,QHout(n,p)))) =E= mH(p-1)*Th(p-1) + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - sum(n,QHout(n,p))*Tau(p)*Th(p-1);
-e54(p)$(ord(p) = 1)..             Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - sum(n,QHout(n,p)))) =E= mH0*Tamb + sum(i,QHin(i,p)*Tau(p)*Tout_U(i)) - sum(n,QHout(n,p))*Tau(p)*Tamb;
+e51(p)$(ord(p) ne 1)..            0.1*(Tc(p)*(mC(p-1) + Tau(p)*(sum(n,QCin(n,p)) - sum(i,QCout(i,p))))) =E= 0.1*(mC(p-1)*Tc(p-1) + sum(n,QCin(n,p)*Ts(n,p))*Tau(p) - sum(i,QCout(i,p)*Tau(p)*Tc(p-1)));
+e52(p)$(ord(p) = 1)..             Tc(p)*(mC0 + Tau(p)*(sum(n,QCin(n,p)) - sum(i,QCout(i,p)))) =E= mC0*Tamb + sum(n,QCin(n,p)*Ts(n,p))*Tau(p) - sum(i,QCout(i,p))*Tau(p)*Tamb;
+e53(p)$(ord(p) ne 1)..            Th(p)*(mH(p-1) + Tau(p)*(sum(i,QHin(i,p)) - sum(n,QHout(n,p)))) =E= mH(p-1)*Th(p-1) + sum(i,QHin(i,p)*Tau(p)*Tout(i,p)) - sum(n,QHout(n,p))*Tau(p)*Th(p-1);
+e54(p)$(ord(p) = 1)..             Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - sum(n,QHout(n,p)))) =E= mH0*Tamb + sum(i,QHin(i,p)*Tau(p)*Tout(i,p)) - sum(n,QHout(n,p))*Tau(p)*Tamb;
 
-e55(i,p)$(ord(p) ne 1)..          0.1*((y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*TWout(n)) + (QCout(i,p)*Tc(p-1)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.1*Fout(i,p)*Tout(i,p);
-e56(i,p)$(ord(p) = 1)..           (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*TWout(n)) + (QCout(i,p)*Tamb) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) =E= Fout(i,p)*Tout(i,p);
+e55(i,p)$(ord(p) ne 1)..          0.1*((y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*Ts(n,p)) + (QCout(i,p)*Tc(p-1)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.1*Fout(i,p)*Tout(i,p);
+e56(i,p)$(ord(p) = 1)..           (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*Ts(n,p)) + (QCout(i,p)*Tamb) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) =E= Fout(i,p)*Tout(i,p);
 
-e57(n,p)..                        TWin(n,p)*OS(n) =E= sum(i,CR(i,n,p)*Tout(i,p)) + (QHout(n,p)*Th(p));
+* Wrong
+e57(n,p)..                        TWin(n,p)*OS(n) =E= sum(i,(CR(i,n,p) - M(n,p))*Tout(i,p)) + (QHout(n,p)*Th(p));
 e58(n,p)..                        TWin(n,p) =L= TWin_U(n);
 e59(i,p)..                        Tout(i,p) =G= Tout_L*y(i,p);
 
-e60(i,p)$(ord(p) ne 1)..          Fin(i,p)*Tin(i,p) =E= (sum(n,CS(i,n,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) + QCout(i,p)*Tc(p-1));
-e61(i,p)$(ord(p) = 1)..           Fin(i,p)*Tin(i,p) =E= (sum(n,CS(i,n,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) + QCout(i,p)*Tamb);
+e60(i,p)$(ord(p) ne 1)..          Fin(i,p)*Tin(i,p) =E= (sum(n,CS(i,n,p)*Ts(n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) + QCout(i,p)*Tc(p-1));
+e61(i,p)$(ord(p) = 1)..           Fin(i,p)*Tin(i,p) =E= (sum(n,CS(i,n,p)*Ts(n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) + QCout(i,p)*Tamb);
 
 ee21(n,p)..                       E(n,p) =E= 0.00085*1.8*OS(n)*(TWin(n,p)-TWout(n));
 ee5(n,p)..                        Ts(n,p)*sum(i,CS(i,n,p)) =E= M(n,p)*Tamb + sum(i,CS(i,n,p))*TWout(n);
@@ -293,7 +296,7 @@ Tc.UP(p) = Tamb;
 *FR.FX(i,ii,p) = 0;
 *Remove above comment to compare when recycle is not allowed.
 
-Model Moodley_Majozi_2008_4a /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e401,e411,e441,e451,ee1,ee2,ee3,ee4/;
+Model Moodley_Majozi_2008_4a /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e401,e411,e441,e451,ee1,ee2,ee3,ee4,eg1,eg2,eg3,eg4/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options LP = CPLEX;
@@ -305,7 +308,7 @@ Solve Moodley_Majozi_2008_4a using MIP minimising sto0;
 mC0.FX = mC0.L;
 mH0.FX = mH0.L;
 
-Model Moodley_Majozi_2008_4b /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e401,e411,e441,e451,ee1,ee2,ee3,ee4/;
+Model Moodley_Majozi_2008_4b /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e401,e411,e441,e451,ee1,ee2,ee3,ee4,eg1,eg2,eg3,eg4/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MIP = CPLEX;
@@ -317,7 +320,7 @@ Solve Moodley_Majozi_2008_4b using MIP minimising CW;
 
 CW.FX = CW.L;
 
-Model Moodley_Majozi_2008_4c /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e401,e411,e441,e451,e47,e48,e49,e50,e51,e52,e53,e54,ee1,ee2,ee3,ee4/;
+Model Moodley_Majozi_2008_4c /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e401,e411,e441,e451,e47,e48,e49,e50,e51,e52,e53,e54,ee1,ee2,ee3,ee4,eg1,eg2,eg3,eg4/;
 *Include all equations?
 Options SYSOUT = ON;
 Options LIMROW = 1e9;
@@ -342,7 +345,7 @@ mH0.UP = inf;
 
 QCin.FX(n,p) = 0;
 
-Model Moodley_Majozi_2008_4d /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59,ee1,ee2,ee21,ee4/;
+Model Moodley_Majozi_2008_4d /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59,ee1,ee2,ee21,ee4,ee5/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9
 Options MINLP = DICOPT;
@@ -358,7 +361,7 @@ Solve Moodley_Majozi_2008_4d using MINLP minimising sto0;
 
 sto0.FX = sto0.L;
 
-Model Moodley_Majozi_2008_4e /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59,ee1,ee2,ee21,ee4/;
+Model Moodley_Majozi_2008_4e /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59,ee1,ee2,ee21,ee4,ee5/;
 Options SYSOUT = ON;
 Options LIMROW = 1e9
 Options MINLP = DICOPT;
@@ -374,7 +377,7 @@ Solve Moodley_Majozi_2008_4e using MINLP minimising CW;
 
 CW.FX = CW.L;
 
-Model Moodley_Majozi_2008_4f /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59,ee1,ee2,ee21,ee4/;
+Model Moodley_Majozi_2008_4f /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59,ee1,ee2,ee21,ee4,ee5/;
 Options SYSOUT = ON;
 Options LIMROW = 1e9
 Options MINLP = DICOPT;
