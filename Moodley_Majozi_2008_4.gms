@@ -160,7 +160,7 @@ e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e
 e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47          Linear Model
 e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59,e60,e61                                          Nonlinear Model
 e401,e411,e441,e451
-ee1,ee2,ee3,ee4,ee21,ee5
+ee1,ee2,ee3,ee4,ee21,ee5,ee10
 eg1,eg2,eg3,eg4
 ;
 $Ontext
@@ -204,7 +204,7 @@ $Offtext
 
 e26(n,p)..                        sum(i,G1(i,n,p)) + G5(n,p) =L= TWin_U(n)*OS(n);
 e27(i,p)..                        (y(i,p)*Q(i)*3600/cp) + sum(n,G4(i,n,p)) + sum(ii$(ord(ii) ne ord(i)),G2(ii,i,p)) + G6(i,p) =E= G3(i,p);
-
+ee10(n,p)..                       sum(i,G4(i,n,p)) =E= M(n,p)*Tamb + sum(i,CS(i,n,p))*TWout(n);
 
 $Ontext
 e26(n,p)..                        sum(i,G1(i,n,p)) + QHout(n,p)*The =L= Tret_U(n)*OS(n);
@@ -253,6 +253,10 @@ e45(i,p)$(ord(p) ne 1)..          G6(i,p) =L= (Fin_U(i)*Tc(p-1)) + (QCout(i,p)*0
 e451(i,p)$(ord(p) = 1)..          G6(i,p) =L= (Fin_U(i)*Tamb) + (QCout(i,p)*0) - (Fin_U(i)*0);
 e46(i,p)..                        G6(i,p) =L= QCout(i,p)*Tamb;
 e47(i,p)..                        G6(i,p) =G= QCout(i,p)*0;
+
+*ee10..                           Ts(n,p)*sum(i,CS(i,n,p)) =E= M(n,p)*Tamb + sum(i,CS(i,n,p))*TWout(n);
+
+
 *Try this linearisation, otherwise use estimated paramters for Tc and Th
 *$Offtext
 $Ontext
@@ -270,7 +274,6 @@ e54(p)$(ord(p) = 1)..             Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - sum(n,
 e55(i,p)$(ord(p) ne 1)..          0.1*((y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*Ts(n,p)) + (QCout(i,p)*Tc(p-1)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.1*Fout(i,p)*Tout(i,p);
 e56(i,p)$(ord(p) = 1)..           (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*Ts(n,p)) + (QCout(i,p)*Tamb) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) =E= Fout(i,p)*Tout(i,p);
 
-* Wrong
 e57(n,p)..                        TWin(n,p)*OS(n) =E= sum(i,(CR(i,n,p) - M(n,p))*Tout(i,p)) + (QHout(n,p)*Th(p));
 e58(n,p)..                        TWin(n,p) =L= TWin_U(n);
 e59(i,p)..                        Tout(i,p) =G= Tout_L*y(i,p);
@@ -296,7 +299,7 @@ Tc.UP(p) = Tamb;
 *FR.FX(i,ii,p) = 0;
 *Remove above comment to compare when recycle is not allowed.
 
-Model Moodley_Majozi_2008_4a /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e401,e411,e441,e451,ee1,ee2,ee3,ee4,eg1,eg2,eg3,eg4/;
+Model Moodley_Majozi_2008_4a /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e401,e411,e441,e451,ee1,ee2,ee3,ee4,eg1,eg2,eg3,eg4,ee10/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options LP = CPLEX;
@@ -308,7 +311,7 @@ Solve Moodley_Majozi_2008_4a using MIP minimising sto0;
 mC0.FX = mC0.L;
 mH0.FX = mH0.L;
 
-Model Moodley_Majozi_2008_4b /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e401,e411,e441,e451,ee1,ee2,ee3,ee4,eg1,eg2,eg3,eg4/;
+Model Moodley_Majozi_2008_4b /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e401,e411,e441,e451,ee1,ee2,ee3,ee4,eg1,eg2,eg3,eg4,ee10/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MIP = CPLEX;
@@ -320,7 +323,7 @@ Solve Moodley_Majozi_2008_4b using MIP minimising CW;
 
 CW.FX = CW.L;
 
-Model Moodley_Majozi_2008_4c /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e401,e411,e441,e451,e47,e48,e49,e50,e51,e52,e53,e54,ee1,ee2,ee3,ee4,eg1,eg2,eg3,eg4/;
+Model Moodley_Majozi_2008_4c /e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14,e15,e16,e17,e18,e19,e20,e21,e22,e23,e24,e25,e26,e27,e28,e29,e30,e31,e32,e33,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e401,e411,e441,e451,e47,e48,e49,e50,e51,e52,e53,e54,ee1,ee2,ee3,ee4,eg1,eg2,eg3,eg4,ee10/;
 *Include all equations?
 Options SYSOUT = ON;
 Options LIMROW = 1e9;
