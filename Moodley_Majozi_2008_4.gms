@@ -21,7 +21,7 @@ $Ontext
          Alternatively, solve Tret as a parameter as in Moodley.
          Check if this formulation allows for back-recycling loops
          Check whether CW could not have been reduced by making use of storage?
-         Calculate Ts(n,p)
+         Check why cold blowdown outperformes hot blowdown
 $Offtext
 Sets
 i                Cooling-water-using operations that complies with a mass and energy balance of a counter current heat exchanger\
@@ -38,7 +38,7 @@ Positive Variables
 B(n,p)           Blowdown flow from cooling tower n at time point p (t.h^-1)
 CR(i,n,p)        Return cooling water flow from cooling-water-using operation i to cooling water source n at time point p (t.h^-1)
 CS(i,n,p)        Cooling water flow supplied from cooling water source n to cooling-water-using operation i at time point p (t.h^-1)
-D(n)             Drift loss in cooling tower n(t.h^-1)
+D(n,p)           Drift loss in cooling tower n at time point p (t.h^-1)
 E(n,p)           Evaporation loss in cooling tower n at time point p (t.h^-1)
 Fin(i,p)         Total cooling water flow into cooling-water-using operation i including supply and reused water at time point p(t.h^-1)
 Fout(i,p)        Total cooling water flow from cooling-water-using operation i including return and reused water at time point p (t.h^-1)
@@ -169,7 +169,7 @@ $Offtext
 
 e1..                              CW =E= sum(n,OS(n));
 e2(n,p)..                         OS(n) =E= sum(i,CS(i,n,p)) + QCin(n,p) - M(n,p) + B(n,p);
-e3(n,p)..                         OS(n) =E= sum(i,CR(i,n,p)) + QHout(n,p) - D(n) - E(n,p);
+e3(n,p)..                         OS(n) =E= sum(i,CR(i,n,p)) + QHout(n,p) - D(n,p) - E(n,p);
 e4(i,p)..                         Fin(i,p) =E= y(i,p)*(sum(n,CS(i,n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)) + QCout(i,p));
 e5(i,p)..                         Fout(i,p) =E= y(i,p)*(sum(n,CR(i,n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(i,ii,p)) + QHin(i,p));
 e6(i,p)..                         Fin(i,p) =E= Fout(i,p);
@@ -183,7 +183,7 @@ e13(p)$(ord(p) = 1)..             mH(p) =E= mH0 + sum(i,Tau(p)*QHin(i,p)) - sum(
 e14(ii,i,p)$(ord(ii) ne ord(i)).. FR(ii,i,p) =L= Fin_U(i)*y(i,p)*y(ii,p);
 e15(i,p)..                        QCout(i,p) =L= Fin_U(i)*y(i,p);
 e16(i,p)..                        QHin(i,p) =L= Fin_U(i)*y(i,p);
-e17(i,n,p)..                      CR(i,n,p) =L= (OS(n) + D(n) + E(n,p))*y(i,p);
+e17(i,n,p)..                      CR(i,n,p) =L= (OS(n) + D(n,p) + E(n,p))*y(i,p);
 e18(i,n,p)..                      CS(i,n,p) =L= (OS(n) + M(n,p) - B(n,p))*y(i,p);
 e19..                             sto0 =E= mC0 + mH0;
 e20(i,p)..                        QHin(i,p) =L= BM*yHin(p);
@@ -192,11 +192,11 @@ e22(n,p)..                        QCin(n,p) =L= BM*yCin(p);
 e23(i,p)..                        QCout(i,p) =L= BM*yCout(p);
 e24(p)..                          yCin(p) + yCout(p) =L= 1;
 e25(p)..                          yHin(p) + yHout(p) =L= 1;
-ee1(n)..                          D(n) =E= 0.002*OS(n);
+ee1(n,p)..                        D(n,p) =E= 0.002*sum(i,CR(i,n,p));
 *ee2(n,p)..                        B(n,p) =E= (B(n,p) + D(n) + E(n,p)/CC) - D(n);
 ee2(n,p)..                        B(n,p) =E= E(n,p)/(CC-1);
 ee3(n,p)..                        E(n,p) =E= 0.00085*1.8*OS(n)*(TWin_U(n)-TWout(n));
-ee4(n,p)..                        M(n,p) =E= D(n) + E(n,p) + B(n,p);
+ee4(n,p)..                        M(n,p) =E= D(n,p) + E(n,p) + B(n,p);
 
 $Ontext
 -------------------------------Linear Subproblem--------------------------------
@@ -275,14 +275,14 @@ e54(p)$(ord(p) = 1)..             Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - sum(n,
 e55(i,p)$(ord(p) ne 1)..          0.1*((y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*Ts(n,p)) + (QCout(i,p)*Tc(p-1)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.1*Fout(i,p)*Tout(i,p);
 e56(i,p)$(ord(p) = 1)..           (y(i,p)*Q(i)*3600/cp) + sum(n,CS(i,n,p)*Ts(n,p)) + (QCout(i,p)*Tamb) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) =E= Fout(i,p)*Tout(i,p);
 
-e57(n,p)..                        TWin(n,p)*OS(n) =E= sum(i,(CR(i,n,p) - D(n) - E(n,p))*Tout(i,p)) + (QHout(n,p)*Th(p));
+e57(n,p)..                        TWin(n,p)*OS(n) =E= sum(i,(CR(i,n,p) - D(n,p) - E(n,p))*Tout(i,p)) + (QHout(n,p)*Th(p));
 e58(n,p)..                        TWin(n,p) =L= TWin_U(n);
 e59(i,p)..                        Tout(i,p) =G= Tout_L*y(i,p);
 
 e60(i,p)$(ord(p) ne 1)..          Fin(i,p)*Tin(i,p) =E= (sum(n,CS(i,n,p)*Ts(n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) + QCout(i,p)*Tc(p-1));
 e61(i,p)$(ord(p) = 1)..           Fin(i,p)*Tin(i,p) =E= (sum(n,CS(i,n,p)*Ts(n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) + QCout(i,p)*Tamb);
 
-ee21(n,p)..                       E(n,p) =E= 0.00085*1.8*OS(n)*(TWin(n,p)-TWout(n));
+ee21(n,p)..                       E(n,p) =E= 0.00085*1.8*sum(i,CR(i,n,p))*(TWin(n,p)-TWout(n));
 ee5(n,p)..                        Ts(n,p)*sum(i,CS(i,n,p)) =E= M(n,p)*Tamb + (OS(n) - B(n,p))*TWout(n);
 
 $Ontext
