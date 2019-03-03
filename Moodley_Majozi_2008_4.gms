@@ -50,7 +50,7 @@ mH0              Initial mass of hot water in storage tank (t)
 mH(p)            Mass of hot water in storage tank at the start of time point p (t)
 mHf              Maximum Amount of Storage Required for Hot Water Across All Time Points (t)
 mCf              Maximum Amount of Storage Required for Cold Water Across All Time Points (t)
-OS(n)            Total cooling water flow supplied from cooling water source n (t.h^-1)
+OS(n,p)            Total cooling water flow supplied from cooling water source n (t.h^-1)
 QCin(n,p)        Cooling water flow rate from cooling tower n into cold water storage tank at time point p (t.h^-1)
 QCout(i,p)       Cooling water flow rate from cold water storage tank into cooling water using operation i at time point p (t.h^-1)
 QHin(i,p)        Cooling water flow rate from cooling water using operation i to hot water storage tank at time point p (t.h^-1)
@@ -165,13 +165,13 @@ $Ontext
 ---------------------------------General Model----------------------------------
 $Offtext
 
-g1..                              CW =E= sum(n,OS(n));
-g2(n,p)..                         OS(n) =E= sum(i,CS(n,i,p)) + QCin(n,p) - M(n,p) + B(n,p);
-g3(n,p)..                         OS(n) =E= sum(i,CR(n,i,p)) + QHout(n,p) - D(n,p) - E(n,p);
+g1(p)..                              CW =E= sum(n,OS(n,p));
+g2(n,p)..                         OS(n,p) =E= sum(i,CS(n,i,p)) + QCin(n,p) - M(n,p) + B(n,p);
+g3(n,p)..                         OS(n,p) =E= sum(i,CR(n,i,p)) + QHout(n,p) - D(n,p) - E(n,p);
 g4(i,p)..                         Fin(i,p) =E= y(i,p)*(sum(n,CS(n,i,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)) + QCout(i,p));
 g5(i,p)..                         Fout(i,p) =E= y(i,p)*(sum(n,CR(n,i,p)) + sum(ii$(ord(ii) ne ord(i)),FR(i,ii,p)) + QHin(i,p));
 g6(i,p)..                         Fin(i,p) =E= Fout(i,p);
-g7(n)..                           OS(n) =L= OS_U(n);
+g7(n,p)..                          OS(n,p) =L= OS_U(n);
 g8(i,p)..                         Tout(i,p) =L= Tout_U(i)*y(i,p);
 g9(i,p)..                         Fin(i,p) =L= (Fin_U(i))*y(i,p);
 g10(p)$(ord(p) ne 1)..            mC(p) =E= mC(p-1) + sum(n,Tau(p)*QCin(n,p)) - sum(i,Tau(p)*QCout(i,p));
@@ -181,8 +181,8 @@ g13(p)$(ord(p) = 1)..             mH(p) =E= mH0 + sum(i,Tau(p)*QHin(i,p)) - sum(
 g14(ii,i,p)$(ord(ii) ne ord(i)).. FR(ii,i,p) =L= Fin_U(i)*y(i,p)*y(ii,p);
 g15(i,p)..                        QCout(i,p) =L= Fin_U(i)*y(i,p);
 g16(i,p)..                        QHin(i,p) =L= Fin_U(i)*y(i,p);
-g17(n,i,p)..                      CR(n,i,p) =L= (OS(n) + D(n,p) + E(n,p))*y(i,p);
-g18(n,i,p)..                      CS(n,i,p) =L= (OS(n) + M(n,p) - B(n,p))*y(i,p);
+g17(n,i,p)..                      CR(n,i,p) =L= (OS(n,p) + D(n,p) + E(n,p))*y(i,p);
+g18(n,i,p)..                      CS(n,i,p) =L= (OS(n,p) + M(n,p) - B(n,p))*y(i,p);
 g19..                             sto0 =E= mC0 + mH0;
 g20(i,p)..                        QHin(i,p) =L= BM*yHin(p);
 g21(n,p)..                        QHout(n,p) =L= BM*yHout(p);
@@ -199,17 +199,17 @@ $Ontext
 -------------------------------Linear Subproblem--------------------------------
 $Offtext
 
-l1(n,p)..                         E(n,p) =E= 0.00085*1.8*OS(n)*(TWin_U(n)-TWout(n));
+l1(n,p)..                         E(n,p) =E= 0.00085*1.8*OS(n,p)*(TWin_U(n)-TWout(n));
 
-l2(n,p)..                         sum(i,y1(n,i,p)) + y6(n,p) =L= TWin_U(n)*OS(n);
+l2(n,p)..                         sum(i,y1(n,i,p)) + y6(n,p) =L= TWin_U(n)*OS(n,p);
 l3(i,p)..                         (y(i,p)*Q(i)*3600/cp) + sum(n,y4(n,i,p)) + sum(ii$(ord(ii) ne ord(i)),y2(ii,i,p)) + y7(i,p) =E= y3(i,p);
-l4(n,p)..                         sum(i,y4(n,i,p)) =E= M(n,p)*Tamb + (OS(n) - B(n,p))*TWout(n);
+l4(n,p)..                         sum(i,y4(n,i,p)) =E= M(n,p)*Tamb + (OS(n,p) - B(n,p))*TWout(n);
 l5(n,p)..                         y5(n,p) =E= M(n,p)*Tamb + sum(i,CS(n,i,p))*TWout(n);
 
 $Ontext
-l1(n,p)..                        sum(i,y1(n,i,p)) + QHout(n,p)*The =L= Tret_U(n)*OS(n);
+l1(n,p)..                        sum(i,y1(n,i,p)) + QHout(n,p)*The =L= Tret_U(n)*OS(n,p);
 l2(i,p)..                        (y(i,p)*Q(i)*3600/cp) + sum(n,CS(n,i,p)*T(n)) + sum(ii$(ord(ii) ne ord(i)),y2(ii,i,p)) + QCout(i,p)*Tce =E= y3(i,p);
-l3(n,p)..                        sum(i,y1(n,i,p)) + y5(n,p) =L= TWin_U(n)*OS(n);
+l3(n,p)..                        sum(i,y1(n,i,p)) + y5(n,p) =L= TWin_U(n)*OS(n,p);
 l4(i,p)..                        (y(i,p)*Q(i)*3600/cp) + sum(n,CS(n,i,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),y2(ii,i,p)) + y6(i,p) =E= y3(i,p);
 $Offtext
 
@@ -276,7 +276,7 @@ n7(p)$(ord(p) = 1)..              Th(p)*(mH0 + Tau(p)*(sum(i,QHin(i,p)) - sum(n,
 n8(i,p)$(ord(p) ne 1)..           0.1*((y(i,p)*Q(i)*3600/cp) + sum(n,CS(n,i,p)*Ts(n,p)) + (QCout(i,p)*Tc(p-1)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.1*Fout(i,p)*Tout(i,p);
 n9(i,p)$(ord(p) = 1)..            (y(i,p)*Q(i)*3600/cp) + sum(n,CS(n,i,p)*Ts(n,p)) + (QCout(i,p)*Tamb) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) =E= Fout(i,p)*Tout(i,p);
 
-n10(n,p)..                        TWin(n,p)*OS(n) =E= sum(i,(CR(n,i,p) - D(n,p) - E(n,p))*Tout(i,p)) + (QHout(n,p)*Th(p));
+n10(n,p)..                        TWin(n,p)*OS(n,p) =E= sum(i,(CR(n,i,p) - D(n,p) - E(n,p))*Tout(i,p)) + (QHout(n,p)*Th(p));
 n11(n,p)..                        TWin(n,p) =L= TWin_U(n);
 n12(i,p)..                        Tout(i,p) =G= Tout_L*y(i,p);
 
@@ -284,7 +284,7 @@ n13(i,p)$(ord(p) ne 1)..          Fin(i,p)*Tin(i,p) =E= (sum(n,CS(n,i,p)*Ts(n,p)
 n14(i,p)$(ord(p) = 1)..           Fin(i,p)*Tin(i,p) =E= (sum(n,CS(n,i,p)*Ts(n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)) + QCout(i,p)*Tamb);
 
 n15(n,p)..                        E(n,p) =E= 0.00085*1.8*sum(i,CR(n,i,p))*(TWin(n,p)-TWout(n));
-n16(n,p)..                        Ts(n,p)*sum(i,CS(n,i,p)) =E= M(n,p)*Tamb + (OS(n) - B(n,p))*TWout(n);
+n16(n,p)..                        Ts(n,p)*sum(i,CS(n,i,p)) =E= M(n,p)*Tamb + (OS(n,p) - B(n,p))*TWout(n);
 
 $Ontext
 -----------------------------------Boundaries-----------------------------------
@@ -294,7 +294,7 @@ Fin.UP(i,p) = Fin_U(i);
 *Tin.UP(i,p) = Tin_U(i);
 Tout.UP(i,p) = Tout_U(i);
 TWin.UP(n,p) = TWin_U(n);
-OS.UP(n) = OS_U(n);
+OS.UP(n,p) = OS_U(n);
 CW.LO = 0;
 Th.UP(p) = Thmax;
 Tc.UP(p) = Tamb;
@@ -341,7 +341,7 @@ Solve Moodley_Majozi_2008_4c using MINLP minimising sto;
 
 * Freeing the fixed variables
 CW.LO = CW.L;
-*CW.LO = 58;
+*CW.LO = 45;
 CW.UP = inf;
 mC0.LO = 0;
 mC0.UP = inf;
@@ -364,7 +364,7 @@ maxcycles        100000
 $offecho
 Solve Moodley_Majozi_2008_4d using MINLP minimising sto0;
 
-sto0.FX = sto0.L;
+sto0.FX = 0;
 
 Model Moodley_Majozi_2008_4e /g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g24,g25,g26,g27,g28,n1,n2,n3,n4,n5,n6,n7,n8,n9,n10,n11,n12,n15,n16/;
 Options SYSOUT = ON;
