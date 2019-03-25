@@ -90,13 +90,13 @@ M                Large positive number in big-M constraints
                  //
 ;
 Equations
-a1,a2,a3,a4,a5   Allocation constraints
-c1,c2            Capacity constraints
-mb1,mb2          Mass balance constraints
-d1,d2,d3,d4      Duration constraints
-s1,s2,s3,s4      Sequencing constraints
-t1               Tightening constraints
-r1               Resource constraints
+a1,a2,a3,a4,a5           Allocation constraints
+c1,c2                    Capacity constraints
+mb1,mb2                  Mass balance constraints
+d1,d2,d3,d4              Duration constraints
+s1,s2,s3,s4              Sequencing constraints
+t1                       Tightening constraints
+r1,r2,r3,r4,r5,r6        Resource constraints
 ;
 $Ontext
 ----------------------------Allocation Constraints------------------------------
@@ -149,4 +149,10 @@ t1(j).. sum(i$(ij(i,j)),sum(n,sum(nn$((ord(nn) >= ord(n)) and (ord(nn) <= (ord(n
 $Ontext
 -----------------------------Resource Constraints-------------------------------
 $Offtext
-r1(u,n)..        sum(i$(iu(i,u)),gamma(i,u)*(sum(nn$(ord(nn) <= ord(n)),sum(nnn$((ord(nnn) >= ord(nn)) and (ord(nnn) <= (ord(nn)+dn))),w(i,nn,nnn))) - sum(nnn,sum(nn$((ord(nn) < ord(n)) and (ord(nn) >= ord(nnn)) and (ord(nn) <= (ord(nnn)+dn))),w(i,nnn,nn))))) + sum(i$(iu(i,u)),delta(i,u)*(sum(nn$(ord(nn) <= ord(n)),sum(nnn$(() and ()),)) - sum())) =L= U_max(u);
+r1(u,n)..                                sum(i$(iu(i,u)),gamma(i,u)*(sum(nn$(ord(nn) <= ord(n)),sum(nnn$((ord(nnn) >= ord(nn)) and (ord(nnn) <= (ord(nn)+dn))),w(i,nn,nnn))) - sum(nnn,sum(nn$((ord(nn) < ord(n)) and (ord(nn) >= ord(nnn)) and (ord(nn) <= (ord(nnn)+dn))),w(i,nnn,nn))))) + sum(i$(iu(i,u)),delta(i,u)*(sum(nn$(ord(nn) <= ord(n)),sum(nnn$((ord(nnn) >= ord(nn)) and (ord(nnn) <= (ord(nn)+dn))),b(i,nn,nnn))) - sum(nnn,sum(nn$((ord(nn) < ord(n)) and (ord(nn) >= ord(nnn)) and (ord(nn) <= (ord(nnn)+dn))),b(i,nnn,nn))))) =L= U_max(u);
+r2(u,n)$(ord(n) < card(n))..             Tut(u,n+1) =G= Tut(u,n);
+r3(u,i$(iu(i,u)),n)..                    Tut(u,n) =G= Ts(i,n) - M*(1 - ((sum(nn$(ord(nn) <= ord(n)),sum(nnn$((ord(nnn) >= ord(nn)) and (ord(nnn) <= (ord(nn)+dn))),w(i,nn,nnn))) - sum(nnn,sum(nn$((ord(nn) < ord(n)) and (ord(nn) >= ord(nnn)) and (ord(nn) <= (ord(nnn)+dn))),w(i,nnn,nn))))));
+r4(u,i$(iu(i,u)),n)..                    Tut(u,n) =L= Ts(i,n) + M*(1 - ((sum(nn$(ord(nn) <= ord(n)),sum(nnn$((ord(nnn) >= ord(nn)) and (ord(nnn) <= (ord(nn)+dn))),w(i,nn,nnn))) - sum(nnn,sum(nn$((ord(nn) < ord(n)) and (ord(nn) >= ord(nnn)) and (ord(nn) <= (ord(nnn)+dn))),w(i,nnn,nn))))));
+r5(u,i$(iu(i,u)),n)$(ord(n) ne 1)..      Tf(i,n-1) =G= Tut(u,n) - M*(1 - (sum(nn$(ord(nn) <= (ord(n)-1)),sum(nnn$((ord(nnn) >= ord(nn)) and (ord(nnn) <= (ord(nn)+dn))),w(i,nn,nnn))) - sum(nnn,sum(nn$((ord(nn) < (ord(n)-1)) and (ord(nn) >= ord(nnn)) and (ord(nn) <= (ord(nnn)+dn))),w(i,nnn,nn))))) - M*sum(nn$((ord(nn) >= (ord(n)-1-dn)) and (ord(nn) <= (ord(n)-1))),w(i,nn,n-1));
+r6(u,i$(iu(i,u)),n)$(ord(n) ne 1)..      Tf(i,n-1) =L= Tut(u,n) + M*(1 - (sum(nn$(ord(nn) <= (ord(n)-1)),sum(nnn$((ord(nnn) >= ord(nn)) and (ord(nnn) <= (ord(nn)+dn))),w(i,nn,nnn))) - sum(nnn,sum(nn$((ord(nn) < (ord(n)-1)) and (ord(nn) >= ord(nnn)) and (ord(nn) <= (ord(nnn)+dn))),w(i,nnn,nn)))));
+*Why the difference in r5 and r6?      
