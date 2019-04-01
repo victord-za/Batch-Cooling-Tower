@@ -219,6 +219,7 @@ Model Moodley_Majozi_2008_4a /g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MIP = CPLEX;
+Option  optcr = 0.00001;
 Moodley_Majozi_2008_4a.optfile=1
 $onecho > cplex.opt
 iis              1
@@ -248,6 +249,7 @@ Options SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MINLP = DICOPT;
 Options MIP = CPLEX;
+Option  optcr = 0.00001;
 Moodley_Majozi_2008_4c.optfile=1
 $onecho > cplex.opt
 iis              1
@@ -283,6 +285,7 @@ Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MINLP = DICOPT;
 Options MIP = CPLEX;
+Option  optcr = 0.00001;
 Moodley_Majozi_2008_4e.optfile=1
 $onecho > cplex.opt
 iis              1
