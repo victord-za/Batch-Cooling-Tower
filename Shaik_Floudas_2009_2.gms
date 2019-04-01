@@ -8,13 +8,13 @@ Sets
 i                Tasks
                  /i1*i8/
 j                Units
-                 /j1*j8/
+                 /j1*j4/
 n                Events
-                 /n1*n6/
+                 /n1*n7/
 s                States
                  /s1*s9/
 ij(i,j)          Tasks which can be performed in unit j
-                 /i1.j1,i2.j2,i3.j3,i4.j4,i5.j5,i6.j6,i7.j7,i8.j8/
+                 /i1.j1,i2.j2,i3.j3,i4.j2,i5.j3,i6.j2,i7.j3,i8.j4/
 is(i,s)          Tasks which process state s and either produce or consume
                  /i1.s1,i1.s4,i2.s2,i2.s3,i2.s6,i3.s2,i3.s3,i3.s6,i4.s4,i4.s5,i4.s6,i4.s8,i5.s4,i5.s5,i5.s6,i5.s8,i6.s3,i6.s5,i6.s7,i7.s3,i7.s5,i7.s7,i8.s5,i8.s7,i8.s9/
 isc(i,s)         Tasks which consume state s
@@ -22,7 +22,7 @@ isc(i,s)         Tasks which consume state s
 isp(i,s)         Tasks which produce state s
                  /i1.s4,i2.s6,i3.s6,i4.s5,i4.s8,i5.s5,i5.s8,i6.s7,i7.s7,i8.s5,i8.s9/
 ji(j,i)          Units which are suitable for performing task i
-                 /j1.i1,j2.i2,j3.i3,j4.i4,j5.i5,j6.i6,j7.i7,j8.i8/
+                 /j1.i1,j2.i2,j2.i4,j2.i6,j3.i3,j3.i5,j3.i7,j4.i8/
 $Ontext
 ij1(i)           Tasks which can be performed in unit j1
                  //
