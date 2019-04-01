@@ -16,9 +16,9 @@ s                States
 ij(i,j)          Tasks which can be performed in unit j
                  /i1.j1,i2.j2,i3.j3,i4.j4,i5.j5,i6.j6,i7.j7,i8.j8/
 is(i,s)          Tasks which process state s and either produce or consume
-                 /i1.s1,i1.s4,i2.s2,i2.s3,i2.s6,i3.s2,i3.s3,i3.s6,i4.s4,i4.s5,i4.s6,i4.s8,i5.s4,i5.s5,i5.s6,i5.s8,i6.s5,i6.s7,i7.s5,i7.s7,i8.s5,i8.s7,i8.s9/
+                 /i1.s1,i1.s4,i2.s2,i2.s3,i2.s6,i3.s2,i3.s3,i3.s6,i4.s4,i4.s5,i4.s6,i4.s8,i5.s4,i5.s5,i5.s6,i5.s8,i6.s3,i6.s5,i6.s7,i7.s3,i7.s5,i7.s7,i8.s5,i8.s7,i8.s9/
 isc(i,s)         Tasks which consume state s
-                 /i1.s1,i2.s2,i2.s3,i3.s2,i3.s3,i4.s4,i4.s6,i5.s4,i5.s6,i6.s5,i7.s5,i8.s7/
+                 /i1.s1,i2.s2,i2.s3,i3.s2,i3.s3,i4.s4,i4.s6,i5.s4,i5.s6,i6.s3,i6.s5,i7.s3,i7.s5,i8.s7/
 isp(i,s)         Tasks which produce state s
                  /i1.s4,i2.s6,i3.s6,i4.s5,i4.s8,i5.s5,i5.s8,i6.s7,i7.s7,i8.s5,i8.s9/
 ji(j,i)          Units which are suitable for performing task i
@@ -70,7 +70,7 @@ $Offtext
 sp(s)            States that are final products
                  /s8,s9/
 sr(s)            States that are raw materials
-                 /s1,s2/
+                 /s1,s2,s3/
 sdfis(s)         States with dedicated finite intermediate storage
                  /s1,s2,s3,s4,s5,s6,s7,s8,s9/
 *snis(s)          States with no intermediate storage
@@ -155,7 +155,7 @@ p(s)             Price of state s
 ST0(s)          Initial amount of state s available
                  /s1  999999999
                   s2  999999999
-                  s3  0
+                  s3  999999999
                   s4  0
                   s5  0
                   s6  0
@@ -184,15 +184,15 @@ M                Large positive number in big-M constraints
                  /10/
 ;
 Table rho(i,s) Proportion of state s produced (>0) or consumed (<0) by task i
-                s1    s2    s3    s4    s5    s6    s7    s8    s9
-        i1      -1    0     0     1     0     0     0     0     0
-        i2      0     -0.5  -0.5  0     0     1     0     0     0
-        i3      0     -0.5  -0.5  0     0     1     0     0     0
-        i4      0     0     0     -0.4  0.6   -0.6  0     0.4   0
-        i5      0     0     0     -0.4  0.6   -0.6  0     0.4   0
-        i6      0     0     -0.2  0     -0.8  0     1     0     0
-        i7      0     0     -0.2  0     -0.8  0     1     0     0
-        i8      0     0     0     0     0.1   0     -1    0     0.9
+                 s1      s2      s3      s4      s5      s6      s7      s8      s9
+        i1       -1      0       0       1       0       0       0       0       0
+        i2       0       -0.5    -0.5    0       0       1       0       0       0
+        i3       0       -0.5    -0.5    0       0       1       0       0       0
+        i4       0       0       0       -0.4    0.6     -0.6    0       0.4     0
+        i5       0       0       0       -0.4    0.6     -0.6    0       0.4     0
+        i6       0       0       -0.2    0       -0.8    0       1       0       0
+        i7       0       0       -0.2    0       -0.8    0       1       0       0
+        i8       0       0       0       0       0.1     0       -1      0       0.9
 Equations
 a1,a2,a3,a4,a5           Allocation constraints
 c1,c2                    Capacity constraints
