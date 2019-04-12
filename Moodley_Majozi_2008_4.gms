@@ -226,7 +226,7 @@ iis              1
 $offecho
 Solve Moodley_Majozi_2008_4a using MIP minimising CW;
 
-CW.LO = 50;
+CW.LO = CW.L;
 
 Model Moodley_Majozi_2008_4b /g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,n1,n2,n3,n6,n7/;
 Option SYSOUT = ON;
