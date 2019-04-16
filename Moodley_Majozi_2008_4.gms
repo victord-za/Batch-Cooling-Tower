@@ -42,6 +42,7 @@ y2(ii,i,p)       Linearisation variable 2 for term FR(ii.i.p)*Tout(ii.p)
 y3(i,p)          Linearisation variable 3 for term Fin(i.p)*Tout(i.p)
 y4(n,i,p)        Linearisation variable 4 for term CS(n.i.p)*Ts(n.p)
 y5(n,i,p)        Linearisation variable 5 for term CR(n.i.p)*TWin(n.p)
+y6(nn,n,p)       Linearisation variable 5 for term R(nn.n.p)*TWin(n.p)
 Tout(i,p)        Outlet cooling water temperature from cooling-water-using operation i at time point p(C)
 TWin(n,p)        Return temperature to cooling water source n at time point p (C)
 Tr(p)
@@ -124,16 +125,19 @@ Table    y(i,p)  Binary parameter indicating activity of cooling water using ope
 Fin_U(i) = Q(i)*3600/(cp*(Tout_U(i)-Tin_U(i)));
 Tcmin = smin(n,TWout(n));
 Equations
-g1,g2,g3,g4,g5,g6,g7,g7i,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18                       General CWS Model
-l1,l2,l3,l4,l5,l6,l7,l8,l9,l10,l11,l12,l13,l14,l15,l16,l17,l18,l19,l20,l21,l22,l23,l24   Linear CWS Model
-n1,n2,n3,n4,n5,n6,n7,n8,n9,n10                                                           Nonlinear CWS Model
+g1,g2,g3,g4,g5,g6,g7,g7i,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18                                               General CWS Model
+l1,l2,l3,l4
+*,l5,
+l6,l7,l8,l9,l10,l11,l12,l13,l14,l15,l16,l17,l18,l19,l20,l21,l22,l23,l24,l25
+*,l26,l27,l28,l29       Linear CWS Model
+n1,n2,n3,n4,n5,n6,n7,n8,n9                                                                                       Nonlinear CWS Model
 ;
 $Ontext
 ---------------------------------General Model----------------------------------
 $Offtext
 
 g1(p)..                           CW =E= sum(n,OS(n,p));
-g2(n,p)..                         OS(n,p) =E= sum(i,CS(n,i,p)) - M(n,p) + B(n,p);
+g2(n,p)..                         OS(n,p) =E= sum(i,CS(n,i,p)) + sum(nn,R(n,nn,p)) - M(n,p) + B(n,p);
 g3(n,p)..                         OS(n,p) =E= sum(i,CR(n,i,p)) + sum(nn,R(nn,n,p)) - D(n,p) - E(n,p);
 g4(i,p)..                         Fin(i,p) =E= (sum(n,CS(n,i,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)));
 g5(i,p)..                         Fout(i,p) =E= (sum(n,CR(n,i,p)) + sum(ii$(ord(ii) ne ord(i)),FR(i,ii,p)));
@@ -160,50 +164,55 @@ $Offtext
 l1(n,p)..                         E(n,p) =E= 0.00085*1.8*(sum(i,y5(n,i,p))-sum(i,CR(n,i,p)*TWout(n)));
 l2(n,p)..                         sum(i,y1(n,i,p)) + sum(nn,R(nn,n,p)*TWout(nn)) =L= TWin_U(n)*sum(i,CR(n,i,p));
 l3(i,p)..                         (y(i,p)*Q(i)*3600/cp) + sum(n,y4(n,i,p)) + sum(ii$(ord(ii) ne ord(i)),y2(ii,i,p)) =E= y3(i,p);
-l4(n,p)..                         sum(i,y4(n,i,p)) =E= M(n,p)*Tamb + (OS(n,p) - B(n,p))*TWout(n);
+l4(n,p)..                         sum(i,y4(n,i,p)) =E= M(n,p)*Tamb + (OS(n,p) - B(n,p) - sum(nn,R(n,nn,p)))*TWout(n);
+*l5(n,p)..                         sum(i,y5(n,i,p)) + sum(nn,y6(nn,n,p)) =E= sum(i,y1(n,i,p)) + sum(nn,R(nn,n,p)*TWout(nn));
 
-l5(n,i,p)..                       y1(n,i,p) =G= ((Fin_U(i)*Tout(i,p)) + (CR(n,i,p)*Tout_U(i)) - (Fin_U(i)*Tout_U(i)));
-l6(n,i,p)..                       y1(n,i,p) =L= (Fin_U(i)*Tout(i,p) + CR(n,i,p)*Tout_L - y(i,p)*Fin_U(i)*Tout_L);
-l7(n,i,p)..                       y1(n,i,p) =L= CR(n,i,p)*Tout_U(i);
-l8(n,i,p)..                       y1(n,i,p) =G= CR(n,i,p)*Tout_L;
+l6(n,i,p)..                       y1(n,i,p) =G= ((Fin_U(i)*Tout(i,p)) + (CR(n,i,p)*Tout_U(i)) - (Fin_U(i)*Tout_U(i)));
+l7(n,i,p)..                       y1(n,i,p) =L= (Fin_U(i)*Tout(i,p) + CR(n,i,p)*Tout_L - y(i,p)*Fin_U(i)*Tout_L);
+l8(n,i,p)..                       y1(n,i,p) =L= CR(n,i,p)*Tout_U(i);
+l9(n,i,p)..                       y1(n,i,p) =G= CR(n,i,p)*Tout_L;
 
-l9(ii,i,p)$(ord(ii) ne ord(i))..  y2(ii,i,p) =G= ((Fin_U(i)*Tout(ii,p)) + (FR(ii,i,p)*Tout_U(ii)) - (Fin_U(i)*Tout_U(ii)));
-l10(ii,i,p)$(ord(ii) ne ord(i)).. y2(ii,i,p) =L= (Fin_U(i)*Tout(ii,p) + FR(ii,i,p)*Tout_L - y(i,p)*y(ii,p)*Fin_U(i)*Tout_L);
-l11(ii,i,p)$(ord(ii) ne ord(i)).. y2(ii,i,p) =L= FR(ii,i,p)*Tout_U(ii);
-l12(ii,i,p)$(ord(ii) ne ord(i)).. y2(ii,i,p) =G= FR(ii,i,p)*Tout_L;
+l10(ii,i,p)$(ord(ii) ne ord(i)).. y2(ii,i,p) =G= ((Fin_U(i)*Tout(ii,p)) + (FR(ii,i,p)*Tout_U(ii)) - (Fin_U(i)*Tout_U(ii)));
+l11(ii,i,p)$(ord(ii) ne ord(i)).. y2(ii,i,p) =L= (Fin_U(i)*Tout(ii,p) + FR(ii,i,p)*Tout_L - y(i,p)*y(ii,p)*Fin_U(i)*Tout_L);
+l12(ii,i,p)$(ord(ii) ne ord(i)).. y2(ii,i,p) =L= FR(ii,i,p)*Tout_U(ii);
+l13(ii,i,p)$(ord(ii) ne ord(i)).. y2(ii,i,p) =G= FR(ii,i,p)*Tout_L;
 
-l13(i,p)..                        y3(i,p) =G= ((Fin_U(i)*Tout(i,p)) + (Fin(i,p)*Tout_U(i)) - (Fin_U(i)*Tout_U(i)));
-l14(i,p)..                        y3(i,p) =L= ((Fin_U(i)*Tout(i,p)) + (Fin(i,p)*Tout_L) - (y(i,p)*Fin_U(i)*Tout_L));
-l15(i,p)..                        y3(i,p) =L= Fin(i,p)*Tout_U(i);
-l16(i,p)..                        y3(i,p) =G= Fin(i,p)*Tout_L;
+l14(i,p)..                        y3(i,p) =G= ((Fin_U(i)*Tout(i,p)) + (Fin(i,p)*Tout_U(i)) - (Fin_U(i)*Tout_U(i)));
+l15(i,p)..                        y3(i,p) =L= ((Fin_U(i)*Tout(i,p)) + (Fin(i,p)*Tout_L) - (y(i,p)*Fin_U(i)*Tout_L));
+l16(i,p)..                        y3(i,p) =L= Fin(i,p)*Tout_U(i);
+l17(i,p)..                        y3(i,p) =G= Fin(i,p)*Tout_L;
 
-l17(n,i,p)..                      y4(n,i,p) =G= (Fin_U(i)*Ts(n,p) + CS(n,i,p)*Tamb - Fin_U(i)*Tamb);
-l18(n,i,p)..                      y4(n,i,p) =L= (Fin_U(i)*Ts(n,p) + CS(n,i,p)*Tcmin - y(i,p)*Fin_U(i)*Tcmin);
-l19(n,i,p)..                      y4(n,i,p) =L= CS(n,i,p)*Tamb;
-l20(n,i,p)..                      y4(n,i,p) =G= CS(n,i,p)*Tcmin;
+l18(n,i,p)..                      y4(n,i,p) =G= (Fin_U(i)*Ts(n,p) + CS(n,i,p)*Tamb - Fin_U(i)*Tamb);
+l19(n,i,p)..                      y4(n,i,p) =L= (Fin_U(i)*Ts(n,p) + CS(n,i,p)*Tcmin - y(i,p)*Fin_U(i)*Tcmin);
+l20(n,i,p)..                      y4(n,i,p) =L= CS(n,i,p)*Tamb;
+l21(n,i,p)..                      y4(n,i,p) =G= CS(n,i,p)*Tcmin;
 
-l21(n,i,p)..                      y5(n,i,p) =G= (Fin_U(i)*TWin(n,p) + CR(n,i,p)*TWin_U(n) - Fin_U(i)*TWin_U(n));
-l22(n,i,p)..                      y5(n,i,p) =L= (Fin_U(i)*TWin(n,p) + CR(n,i,p)*Tcmin - y(i,p)*Fin_U(i)*Tcmin);
-l23(n,i,p)..                      y5(n,i,p) =L= CR(n,i,p)*TWin_U(n);
-l24(n,i,p)..                      y5(n,i,p) =G= CR(n,i,p)*Tcmin;
+l22(n,i,p)..                      y5(n,i,p) =G= (Fin_U(i)*TWin(n,p) + CR(n,i,p)*TWin_U(n) - Fin_U(i)*TWin_U(n));
+l23(n,i,p)..                      y5(n,i,p) =L= (Fin_U(i)*TWin(n,p) + CR(n,i,p)*Tcmin - y(i,p)*Fin_U(i)*Tcmin);
+l24(n,i,p)..                      y5(n,i,p) =L= CR(n,i,p)*TWin_U(n);
+l25(n,i,p)..                      y5(n,i,p) =G= CR(n,i,p)*Tcmin;
+
+*l26(nn,n,p)..                     y6(nn,n,p) =G= (OS_U(n)*TWin(n,p)) + R(nn,n,p)*TWin_U(n) - OS_U(n)*TWin_U(n);
+*l27(nn,n,p)..                     y6(nn,n,p) =L= (OS_U(n)*TWin(n,p)) + R(nn,n,p)*TWout(nn) - OS_U(n)*TWout(n);
+*l28(nn,n,p)..                     y6(nn,n,p) =L= R(nn,n,p)*TWin_U(n);
+*l29(nn,n,p)..                     y6(nn,n,p) =G= R(nn,n,p)*TWout(nn);
 
 $Ontext
 ------------------------------Nonlinear Subproblem------------------------------
 $Offtext
 
 n1(i,p)..                        0.01*((y(i,p)*Q(i)*3600/cp) + sum(n,CS(n,i,p)*Ts(n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.01*Fout(i,p)*Tout(i,p);
-n2(n,p)..                        TWin(n,p)*sum(i,CR(n,i,p)) =E= sum(i,CR(n,i,p)*Tout(i,p)) + sum(nn,R(nn,n,p)*TWout(nn));
+n2(n,p)..                        TWin(n,p)*sum(i,CR(n,i,p) + sum(nn,R(nn,n,p))) =E= sum(i,CR(n,i,p)*Tout(i,p)) + sum(nn,R(nn,n,p)*TWout(nn));
 n3(n,p)..                        TWin(n,p) =L= TWin_U(n);
 
 n4(i,p)$(ord(p) ne 1)..          Fin(i,p)*Tin(i,p) =E= (sum(n,CS(n,i,p)*Ts(n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)));
 n5(i,p)$(ord(p) = 1)..           Fin(i,p)*Tin(i,p) =E= (sum(n,CS(n,i,p)*Ts(n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)));
 
 n6(n,p)..                        E(n,p) =E= 0.00085*1.8*sum(i,CR(n,i,p))*(TWin(n,p)-TWout(n));
-n7(n,p)..                        Ts(n,p)*sum(i,CS(n,i,p)) =E= M(n,p)*Tamb + (OS(n,p) - B(n,p))*TWout(n);
+n7(n,p)..                        Ts(n,p)*sum(i,CS(n,i,p)) =E= M(n,p)*Tamb + (OS(n,p) - B(n,p) - sum(nn,R(n,nn,p)))*TWout(n);
 
 n8..                             DC =E= sum(n,smax(p,OS(n,p)));
-n9(p)..                          Tr(p)*sum(i,sum(n,CR(n,i,p))) =E= sum(i,sum(n,CR(n,i,p)*Tout(i,p))) + sum(nn,sum(n,R(nn,n,p)*TWout(nn)));
-n10..                            Teff =E= sum(p,sum(n,yCT(n)*TWin(n,p)));
+n9..                             Teff =E= sum(p,sum(n,yCT(n)*TWin(n,p)));
 $Ontext
 -----------------------------------Boundaries-----------------------------------
 $Offtext
@@ -215,7 +224,7 @@ OS.UP(n,p) = OS_U(n);
 *FR.FX(i,ii,p) = 0;
 *Remove above comment to compare when recycle is not allowed.
 
-Model Moodley_Majozi_2008_4a /g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,l1,l2,l3,l4,l5,l6,l7,l8,l9,l10,l11,l12,l13,l14,l15,l16,l17,l18,l19,l20,l21,l22,l23,l24/;
+Model Moodley_Majozi_2008_4a /g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,l1,l2,l3,l4,l6,l7,l8,l9,l10,l11,l12,l13,l14,l15,l16,l17,l18,l19,l20,l21,l22,l23,l24,l25/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MIP = CPLEX;
@@ -243,13 +252,16 @@ $offecho
 Solve Moodley_Majozi_2008_4b using NLP minimising CW;
 
 CW.FX = CW.L;
+yCT.FX('n1') =1;
+yCT.FX('n2') =1;
+yCT.FX('n3') =0;
 
 Model Moodley_Majozi_2008_4c /g1,g2,g3,g4,g5,g6,g7i,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,n1,n2,n3,n6,n7,n8/;
 Options SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MINLP = DICOPT;
 Options MIP = CPLEX;
-Option  optcr = 0.00001;
+Option  optcr = 0.000001;
 Moodley_Majozi_2008_4c.optfile=1
 $onecho > cplex.opt
 iis              1
@@ -262,7 +274,7 @@ Solve Moodley_Majozi_2008_4c using MINLP minimising CT;
 DC.L = CW.L;
 DC.LO = CW.L;
 
-Model Moodley_Majozi_2008_4d /g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,n1,n2,n3,n6,n7,n8,n9/;
+Model Moodley_Majozi_2008_4d /g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,n1,n2,n3,n6,n7,n8/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 *Options MINLP = DICOPT;
@@ -279,8 +291,7 @@ Solve Moodley_Majozi_2008_4d using DNLP minimising DC;
 DC.FX = DC.L;
 yCT.FX(n) = yCT.L(n);
 
-
-Model Moodley_Majozi_2008_4e /g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,n1,n2,n3,n6,n7,n8,n9,n10/;
+Model Moodley_Majozi_2008_4e /g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,n1,n2,n3,n6,n7,n8,n9/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MINLP = DICOPT;
