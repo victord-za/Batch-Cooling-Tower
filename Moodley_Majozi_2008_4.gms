@@ -126,10 +126,7 @@ Fin_U(i) = Q(i)*3600/(cp*(Tout_U(i)-Tin_U(i)));
 Tcmin = smin(n,TWout(n));
 Equations
 g1,g2,g3,g4,g5,g6,g7,g7i,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18                                               General CWS Model
-l1,l2,l3,l4
-*,l5,
-l6,l7,l8,l9,l10,l11,l12,l13,l14,l15,l16,l17,l18,l19,l20,l21,l22,l23,l24,l25
-*,l26,l27,l28,l29       Linear CWS Model
+l1,l2,l3,l4,l5,l6,l7,l8,l9,l10,l11,l12,l13,l14,l15,l16,l17,l18,l19,l20,l21,l22,l23,l24,l25,l26,l27,l28,l29       Linear CWS Model
 n1,n2,n3,n4,n5,n6,n7,n8,n9                                                                                       Nonlinear CWS Model
 ;
 $Ontext
@@ -151,7 +148,7 @@ g11(ii,i,p)$(ord(ii) ne ord(i)).. FR(ii,i,p) =L= Fin_U(i)*y(i,p)*y(ii,p);
 g12(n,i,p)..                      CR(n,i,p) =L= (OS(n,p) + D(n,p) + E(n,p))*y(i,p);
 g13(n,i,p)..                      CS(n,i,p) =L= (OS(n,p) + M(n,p) - B(n,p))*y(i,p);
 g14(n,p)..                        sum(nn,R(nn,n,p)) =L= OS_U(n);
-g15(n,p)..                        D(n,p) =E= 0.002*sum(i,CR(n,i,p));
+g15(n,p)..                        D(n,p) =E= 0.002*(sum(i,CR(n,i,p)) + sum(nn,R(nn,n,p)));
 *g26(n,p)..                        B(n,p) =E= (B(n,p) + D(n) + E(n,p)/CC) - D(n);
 g16(n,p)..                        B(n,p) =E= E(n,p)/(CC-1);
 g17(n,p)..                        M(n,p) =E= D(n,p) + E(n,p) + B(n,p);
@@ -162,10 +159,11 @@ $Ontext
 $Offtext
 
 l1(n,p)..                         E(n,p) =E= 0.00085*1.8*(sum(i,y5(n,i,p))-sum(i,CR(n,i,p)*TWout(n)));
+*l1(n,p)..                         E(n,p) =E= 0.00085*1.8*(sum(i,y5(n,i,p))+sum(nn,y6(nn,n,p))-sum(nn,R(nn,n,p)*TWout(n))-sum(i,CR(n,i,p)*TWout(n)));
 l2(n,p)..                         sum(i,y1(n,i,p)) + sum(nn,R(nn,n,p)*TWout(nn)) =L= TWin_U(n)*sum(i,CR(n,i,p));
 l3(i,p)..                         (y(i,p)*Q(i)*3600/cp) + sum(n,y4(n,i,p)) + sum(ii$(ord(ii) ne ord(i)),y2(ii,i,p)) =E= y3(i,p);
 l4(n,p)..                         sum(i,y4(n,i,p)) =E= M(n,p)*Tamb + (OS(n,p) - B(n,p) - sum(nn,R(n,nn,p)))*TWout(n);
-*l5(n,p)..                         sum(i,y5(n,i,p)) + sum(nn,y6(nn,n,p)) =E= sum(i,y1(n,i,p)) + sum(nn,R(nn,n,p)*TWout(nn));
+l5(n,p)..                         sum(i,y5(n,i,p)) + sum(nn,y6(nn,n,p)) =E= sum(i,y1(n,i,p)) + sum(nn,R(nn,n,p)*TWout(nn));
 
 l6(n,i,p)..                       y1(n,i,p) =G= ((Fin_U(i)*Tout(i,p)) + (CR(n,i,p)*Tout_U(i)) - (Fin_U(i)*Tout_U(i)));
 l7(n,i,p)..                       y1(n,i,p) =L= (Fin_U(i)*Tout(i,p) + CR(n,i,p)*Tout_L - y(i,p)*Fin_U(i)*Tout_L);
@@ -192,23 +190,23 @@ l23(n,i,p)..                      y5(n,i,p) =L= (Fin_U(i)*TWin(n,p) + CR(n,i,p)*
 l24(n,i,p)..                      y5(n,i,p) =L= CR(n,i,p)*TWin_U(n);
 l25(n,i,p)..                      y5(n,i,p) =G= CR(n,i,p)*Tcmin;
 
-*l26(nn,n,p)..                     y6(nn,n,p) =G= (OS_U(n)*TWin(n,p)) + R(nn,n,p)*TWin_U(n) - OS_U(n)*TWin_U(n);
-*l27(nn,n,p)..                     y6(nn,n,p) =L= (OS_U(n)*TWin(n,p)) + R(nn,n,p)*TWout(nn) - OS_U(n)*TWout(n);
-*l28(nn,n,p)..                     y6(nn,n,p) =L= R(nn,n,p)*TWin_U(n);
-*l29(nn,n,p)..                     y6(nn,n,p) =G= R(nn,n,p)*TWout(nn);
+l26(nn,n,p)..                     y6(nn,n,p) =G= (OS_U(n)*TWin(n,p)) + R(nn,n,p)*TWin_U(n) - OS_U(n)*TWin_U(n);
+l27(nn,n,p)..                     y6(nn,n,p) =L= (OS_U(n)*TWin(n,p)) + R(nn,n,p)*TWout(nn) - OS_U(n)*TWout(nn);
+l28(nn,n,p)..                     y6(nn,n,p) =L= R(nn,n,p)*TWin_U(n);
+l29(nn,n,p)..                     y6(nn,n,p) =G= R(nn,n,p)*TWout(nn);
 
 $Ontext
 ------------------------------Nonlinear Subproblem------------------------------
 $Offtext
 
 n1(i,p)..                        0.01*((y(i,p)*Q(i)*3600/cp) + sum(n,CS(n,i,p)*Ts(n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.01*Fout(i,p)*Tout(i,p);
-n2(n,p)..                        TWin(n,p)*sum(i,CR(n,i,p) + sum(nn,R(nn,n,p))) =E= sum(i,CR(n,i,p)*Tout(i,p)) + sum(nn,R(nn,n,p)*TWout(nn));
+n2(n,p)..                        TWin(n,p)*(sum(i,CR(n,i,p)) + sum(nn,R(nn,n,p))) =E= sum(i,CR(n,i,p)*Tout(i,p)) + sum(nn,R(nn,n,p)*TWout(nn));
 n3(n,p)..                        TWin(n,p) =L= TWin_U(n);
 
 n4(i,p)$(ord(p) ne 1)..          Fin(i,p)*Tin(i,p) =E= (sum(n,CS(n,i,p)*Ts(n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)));
 n5(i,p)$(ord(p) = 1)..           Fin(i,p)*Tin(i,p) =E= (sum(n,CS(n,i,p)*Ts(n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p)));
 
-n6(n,p)..                        E(n,p) =E= 0.00085*1.8*sum(i,CR(n,i,p))*(TWin(n,p)-TWout(n));
+n6(n,p)..                        E(n,p) =E= 0.00085*1.8*(sum(i,CR(n,i,p)) + sum(nn,R(nn,n,p)))*(TWin(n,p)-TWout(n));
 n7(n,p)..                        Ts(n,p)*sum(i,CS(n,i,p)) =E= M(n,p)*Tamb + (OS(n,p) - B(n,p) - sum(nn,R(n,nn,p)))*TWout(n);
 
 n8..                             DC =E= sum(n,smax(p,OS(n,p)));
@@ -252,9 +250,6 @@ $offecho
 Solve Moodley_Majozi_2008_4b using NLP minimising CW;
 
 CW.FX = CW.L;
-yCT.FX('n1') =1;
-yCT.FX('n2') =1;
-yCT.FX('n3') =0;
 
 Model Moodley_Majozi_2008_4c /g1,g2,g3,g4,g5,g6,g7i,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,n1,n2,n3,n6,n7,n8/;
 Options SYSOUT = ON;
