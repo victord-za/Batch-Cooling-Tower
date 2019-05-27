@@ -13,7 +13,7 @@ j                Equipment units
 *r                Resource categories
 *                 //
 p                Time points
-                 /p1*p8/
+                 /p1*p9/
 s                States
                  /s1*s9/
 ij(i,j)          Set of tasks that can be scheduled on equipment unit j
@@ -37,7 +37,7 @@ zw(i)            Set of task that produce at least one ZW state
                  /i2,i3,i4,i5,i6,i7/
 ;
 Alias
-(p,pp)
+(p,pp),(i,ii)
 ;
 Positive variables
 Bs(i,p)          Batch size of task i that starts at time point p
@@ -45,8 +45,17 @@ Bp(i,p)          Batch size of task i that is being processed at time point p
 Bf(i,p)          Batch size of task i that finishes at or before time point p
 BI(i,s,p)        Amount of state s used as input for task i at time point p
 BO(i,s,p)        Amount of state s produced from task i at or before time point p
+CW
+CS(i,p)
+CR(i,p)
 D(i,p)           Duration of task i that starts at time point p
+Fin(i,p)
+Fout(i,p)
+FR(ii,i,p)       Reused cooling water flow from any other cooling-water-using operation ii to cooling-water-using operation i at time point p (t.h^-1)
 MS               Makespan
+Qi(i,p)
+Qo(i,p)
+Qu(i,p)
 *RI(i,r,p)        Amount of utility r consumed at time point p by task i
 *RO(i,r,p)        Amount of utility r released at or before time point p by task i
 *R(r,p)           Amount of utility r utilized at time point p
@@ -55,6 +64,10 @@ SS(s,p)          Sales of state s at point p
 T(p)             Time that corresponds to time point p
 Ts(i,p)          Start time of task i that starts at time point p
 Tf(i,p)          Finish time of task i that starts at time point p
+y2(ii,i,p)
+y3(i,p)
+Wr(ii,i,p)
+Tout(i,p)
 ;
 Binary variables
 V(j,s,p)         Binary variable indicating whether state s is stored in shared tank j during time period p
@@ -106,7 +119,7 @@ beta(i)          Variable duration of task i
                   i6     0.01332
                   i7     0.008325
                   i8     0.00666/
-Cs_0(s)          Initial amount of state s
+Sc_0(s)          Initial amount of state s
                  /s1     1000
                   s2     1000
                   s3     1000
@@ -116,7 +129,7 @@ Cs_0(s)          Initial amount of state s
                   s7     0
                   s8     0
                   s9     0/
-Cs(s)            Storage capacity for state s
+Sc(s)            Storage capacity for state s
                  /s1     1000
                   s2     1000
                   s3     1000
@@ -131,8 +144,38 @@ Cj(j)            Storage capacity for shared tank j
 * Again, should this not be for jt?
 de(s)            Demand of state s at the end of time horizon
                  //
+Fin_U(i)         Maximum flowrate through cooling-water-using operation i (t.h^-1)
+Q(i)             Duty of cooling-water-using operation i (kW)
+                 /i1     0
+                  i2     610
+                  i3     420
+                  i4     800
+                  i5     555
+                  i6     345
+                  i7     700
+                  i8     200/
 *R_U(r)           Upper bound for utility r
 *                 //
+Tcmin
+Tin(i,p)
+Tin_U(i)         Limiting inlet temperature to cooling-water-using operation i (C)
+                 /i1     30
+                  i2     30
+                  i3     40
+                  i4     25
+                  i5     45
+                  i6     40
+                  i7     30
+                  i8     25/
+Tout_U(i)        Limiting outlet temperature from cooling-water-using operation i (C)
+                 /i1     45
+                  i2     45
+                  i3     60
+                  i4     50
+                  i5     53
+                  i6     45
+                  i7     45
+                  i8     40/
 zeta(s)          Price of state s
                  /s1     0
                   s2     0
@@ -147,31 +190,16 @@ zeta(s)          Price of state s
 Scalars
 H                Time horizon
                  /12/
+cp               Specific heat capacity of water (J.(kg.C)^-1)
+                 /4187/
+Tamb             Ambient temperature (C)
+                 /25/
+Tout_L           Limiting outlet temperature from cooling-water-using operation i (C)
+                 /30/
+Twb              Wet bulb temperature (C)
+                 /17/
+Tsup             /21/
 ;
-$Ontext
-Table delta(i,r) Variable amount of utility r required for task i
-                 r1      r2
-         i1
-         i2
-;
-Table gamma(i,r) Fixed amount of utility r required for task i
-                 r1      r2
-         i1
-         i2
-;
-*$Offtext
-Table rho(i,s)   Mass balance coefficient for the consumption or production of state s in task i
-                 s1      s2      s3      s4      s5      s6      s7      s8      s9
-         i1      -1      0       0       1       0       0       0       0       0
-         i2      0       -0.5    -0.5    0       0       1       0       0       0
-         i3      0       -0.5    -0.5    0       0       1       0       0       0
-         i4      0       0       0       -0.4    0.6     -0.6    0       0.4     0
-         i5      0       0       0       -0.4    0.6     -0.6    0       0.4     0
-         i6      0       0       -0.2    0       -0.8    0       1       0       0
-         i7      0       0       -0.2    0       -0.8    0       1       0       0
-         i8      0       0       0       0       0.1     0       -1      0       0.9
-;
-$Offtext
 *$Ontext
 Table rho(i,s)   Mass balance coefficient for the consumption or production of state s in task i
                  s1      s2      s3      s4      s5      s6      s7      s8      s9
@@ -184,6 +212,10 @@ Table rho(i,s)   Mass balance coefficient for the consumption or production of s
          i7      0       0       0.2     0       0.8     0       1       0       0
          i8      0       0       0       0       0.1     0       1       0       0.9
 ;
+*Fin_U(i) = Q(i)*3600/(cp*(Tout_U(i)-Tin_U(i)));
+Fin_U(i) = Q(i)*3600/(cp*(Tout_U(i)-Tin_U(i)));
+Tcmin = 22;
+*Tcmin = smin(n,TWout(n));
 *$Offtext
 Equations
 e1,e2,e3,e4,e5,e6,e7,e8
@@ -195,6 +227,7 @@ e30
 *,e31,e32,
 e34,e35,e36
 e82
+e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59,e60,e61,e62
 ;
 e1(p)$(ord(p) = 1)..                     T(p) =E= 0;
 e2(p)$(ord(p) = card(p))..               T(p) =E= H;
@@ -204,13 +237,13 @@ e4(j,p)..                                sum(i$(ij(i,j)),Ws(i,p)) =L= 1;
 e5(j,p)..                                sum(i$(ij(i,j)),Wf(i,p)) =L= 1;
 e6(i)..                                  sum(p,Ws(i,p)) =E= sum(p,Wf(i,p));
 e7(s,p)$(ord(p) ne 1)..                  SA(s,p) + SS(s,p) =E= SA(s,p-1) + sum(i$(os(i,s)),BO(i,s,p)) - sum(i$(is(i,s)),BI(i,s,p));
-e8(s,p)..                                SA(s,p) =L= Cs(s);
+e8(s,p)..                                SA(s,p) =L= Sc(s);
 *e81(s,p)$(ord(p) = 1)..                  SA(s,p) =L= Cs_0(s);
-e82(s,p)$(ord(p) = 1)..                  SA(s,p) + SS(s,p) =E= CS_0(s) + sum(i$(os(i,s)),BO(i,s,p)) - sum(i$(is(i,s)),BI(i,s,p));
+e82(s,p)$(ord(p) = 1)..                  SA(s,p) + SS(s,p) =E= Sc_0(s) + sum(i$(os(i,s)),BO(i,s,p)) - sum(i$(is(i,s)),BI(i,s,p));
 *e9(r,p)$(ord(p) ne 1)..                  R(r,p) =E= R(r,p-1) - sum(i,RO(i,r,p-1)) + sum(i,RI(i,r,p));
 *e91(r,p)$(ord(p) = 1)..                  R(r,p) =E= sum(i,RI(i,r,p));
 *e10(r,p)..                               R(r,p) =L= R_U(r);
-e11..                                    Z =E= sum(s,sum(p,zeta(s)*SS(s,p)));
+e11..                                    Z =E= sum(s,sum(p,zeta(s)*SS(s,p))) - 2*CW;
 e12(j,p)..                               sum(i$(ij(i,j)),sum(pp$(ord(pp) le ord(p)),Ws(i,pp) - Wf(i,pp))) =L= 1;
 e13(i,p)$(ord(p) = 1)..                  Wf(i,p) =E= 0;
 *Should this not be for p1?
@@ -243,6 +276,40 @@ e34(j)..                                 sum(i$(ij(i,j)),sum(p,D(i,p))) =L= H;
 e35(j,p)..                               sum(i$(ij(i,j)),sum(pp$(ord(pp) ge ord(p)),D(i,pp))) =L= H - T(p);
 e36(j,p)..                               sum(i$(ij(i,j)),sum(pp$(ord(pp) le ord(p)),(alpha(i)*Wf(i,pp)) + (beta(i)*Bf(i,pp)))) =L= T(p);
 
+e37(i,p)..                               Qi(i,p) =E= Q(i)*Ws(i,p);
+e38(i,p)..                               Qo(i,p) =E= Q(i)*Wf(i,p);
+e39(i,p)$(ord(p) gt 1)..                 Qu(i,p) =E= Qu(i,p-1) - Qo(i,p-1) + Qi(i,p);
+e40(i,p)$(ord(p) = 1)..                  Qu(i,p) =E= Qi(i,p);
+*!!! Must also be active when the unit is still being processed!!!!!
+e41..                                    CW =E= sum(i,sum(p,CS(i,p)));
+e42..                                    CW =E= sum(i,sum(p,CR(i,p)));
+e43(i,p)..                               Fin(i,p) =E= CS(i,p) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p));
+e44(i,p)..                               Fout(i,p) =E= CR(i,p) + sum(ii$(ord(ii) ne ord(i)),FR(i,ii,p));
+e45(i,p)..                               Fin(i,p) =E= Fout(i,p);
+e46(i,p)..                               Tout(i,p) =L= Tout_U(i);
+e47(i,p)..                               Fin(i,p) =L= (Fin_U(i));
+e48(ii,i,p)$(ord(ii) ne ord(i))..        FR(ii,i,p) =L= Fin_U(i);
+
+* Change Ts back to Ts(n,p)
+
+*Linear
+e49(i,p)..                               (Qu(i,p)*3600/cp) + CS(i,p)*Tsup + sum(ii$(ord(ii) ne ord(i)),y2(ii,i,p)) =E= y3(i,p);
+e50(ii,i,p)$(ord(ii) ne ord(i))..        Wr(ii,i,p) =L= (sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)));
+e51(ii,i,p)$(ord(ii) ne ord(i))..        Wr(ii,i,p) =L= (sum(pp$(ord(pp) le ord(p)),Ws(ii,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(ii,pp)));
+e52(ii,i,p)$(ord(ii) ne ord(i))..        Wr(ii,i,p) =E= Wr(i,ii,p);
+e53(ii,i,p)$(ord(ii) ne ord(i))..        y2(ii,i,p) =G= ((Fin_U(i)*Tout(ii,p)) + (FR(ii,i,p)*Tout_U(ii)) - (Fin_U(i)*Tout_U(ii)));
+e54(ii,i,p)$(ord(ii) ne ord(i))..        y2(ii,i,p) =L= (Fin_U(i)*Tout(ii,p) + FR(ii,i,p)*Tout_L - Wr(ii,i,p)*Fin_U(i)*Tout_L);
+e55(ii,i,p)$(ord(ii) ne ord(i))..        y2(ii,i,p) =L= FR(ii,i,p)*Tout_U(ii);
+e56(ii,i,p)$(ord(ii) ne ord(i))..        y2(ii,i,p) =G= FR(ii,i,p)*Tout_L;
+e57(i,p)..                               y3(i,p) =G= ((Fin_U(i)*Tout(i,p)) + (Fin(i,p)*Tout_U(i)) - (Fin_U(i)*Tout_U(i)));
+e58(i,p)..                               y3(i,p) =L= ((Fin_U(i)*Tout(i,p)) + (Fin(i,p)*Tout_L) - ((sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)))*Fin_U(i)*Tout_L));
+e59(i,p)..                               y3(i,p) =L= Fin(i,p)*Tout_U(i);
+e60(i,p)..                               y3(i,p) =G= Fin(i,p)*Tout_L;
+
+*Nonlinear
+e61(i,p)..                               0.01*((Qu(i,p)*3600/cp) + CS(i,p)*Tsup + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.01*Fout(i,p)*Tout(i,p);
+e62(i,p)..                               Fin(i,p)*Tin(i,p) =E= CS(i,p)*Tsup + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p));
+
 $Ontext
 SA.fx('s8','p1') = 0;
 SA.fx('s9','p1') = 0;
@@ -254,15 +321,33 @@ SS.fx(s,'p3') = 0;
 SS.fx(s,'p4') = 0;
 SS.fx(s,'p5') = 0;
 $Offtext
-Model Maravelias_Grossmann_2003_1 /all/;
+FR.fx(ii,i,p) = 0;
+Model Maravelias_Grossmann_2003_1a /e1,e2,e3,e4,e5,e6,e7,e8,e82,e11,e12,e13,e14,e15,e16,e17,e18,e181,e19,e191,e20,e21,e22,e231,e232,e241,e242,e251,e252,e26,e27,e28,e29,e30,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59,e60/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MIP = CPLEX;
-Option  optcr = 0.000001;  
+Option  optcr = 0.000001;
 *Maravelias_Grossmann_2003_1.optfile=1
 *$onecho > cplex.opt
 *iis              1
 *$offecho
-Solve Maravelias_Grossmann_2003_1 using MIP maximising Z;
+Solve Maravelias_Grossmann_2003_1a using MINLP maximising Z;
+
+
+
+Model Maravelias_Grossmann_2003_1b /e1,e2,e3,e4,e5,e6,e7,e8,e82,e11,e12,e13,e14,e15,e16,e17,e18,e181,e19,e191,e20,e21,e22,e231,e232,e241,e242,e251,e252,e26,e27,e28,e29,e30,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e48,e61/;
+*Option SYSOUT = ON;
+*Options LIMROW = 1e9;
+*Options MINLP = DICOPT;
+*Options MIP = CPLEX;
+*Option  optcr = 0.000001;
+*Maravelias_Grossmann_2003_1.optfile=1
+*$onecho > cplex.opt
+*iis              1
+*$offecho
+Solve Maravelias_Grossmann_2003_1b using MINLP maximising Z;
+Tin(i,p) = ((CS.L(i,p)*Tsup) + sum(ii$(ord(ii) ne ord(i)),FR.L(ii,i,p)*Tout.L(ii,p)))/Fin.L(i,p);
+Display Tin;
+
 
 
