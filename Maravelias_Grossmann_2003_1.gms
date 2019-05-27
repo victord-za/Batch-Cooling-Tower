@@ -258,6 +258,7 @@ Model Maravelias_Grossmann_2003_1 /all/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MIP = CPLEX;
+Option  optcr = 0.000001;  
 *Maravelias_Grossmann_2003_1.optfile=1
 *$onecho > cplex.opt
 *iis              1
