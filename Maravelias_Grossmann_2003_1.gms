@@ -13,7 +13,7 @@ j                Equipment units
 *r                Resource categories
 *                 //
 p                Time points
-                 /p1*p9/
+                 /p1*p7/
 s                States
                  /s1*s9/
 ij(i,j)          Set of tasks that can be scheduled on equipment unit j
@@ -46,6 +46,7 @@ Bf(i,p)          Batch size of task i that finishes at or before time point p
 BI(i,s,p)        Amount of state s used as input for task i at time point p
 BO(i,s,p)        Amount of state s produced from task i at or before time point p
 CW
+OSC(p)
 CS(i,p)
 CR(i,p)
 D(i,p)           Duration of task i that starts at time point p
@@ -59,6 +60,7 @@ Qu(i,p)
 *RI(i,r,p)        Amount of utility r consumed at time point p by task i
 *RO(i,r,p)        Amount of utility r released at or before time point p by task i
 *R(r,p)           Amount of utility r utilized at time point p
+R(p)
 SA(s,p)          Amount of state s available at time point p
 SS(s,p)          Sales of state s at point p
 T(p)             Time that corresponds to time point p
@@ -78,6 +80,7 @@ Wf(i,p)          Binary variable indicating whether task i finishes at or before
 Zs(j,p)          Binary variable indicating whether a task in I(j) is assigned to start in unit j at time point p
 Zp(j,p)          Binary variable indicating whether a task in I(j) is being processed in unit j at time point p
 Zf(j,p)          Binary variable indicating whether a task in I(j) assigned to unit j finishes at or before time point p
+yr(ii,i,p)
 ;
 Free variables
 Z
@@ -153,7 +156,7 @@ Q(i)             Duty of cooling-water-using operation i (kW)
                   i5     555
                   i6     345
                   i7     700
-                  i8     200/
+                  i8     0/
 *R_U(r)           Upper bound for utility r
 *                 //
 Tcmin
@@ -227,7 +230,8 @@ e30
 *,e31,e32,
 e34,e35,e36
 e82
-e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59,e60,e61,e62
+e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e48,e48a,e48b,e48c,e48d,e48e,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59,e60,e61,e62,e63
+e131
 ;
 e1(p)$(ord(p) = 1)..                     T(p) =E= 0;
 e2(p)$(ord(p) = card(p))..               T(p) =E= H;
@@ -278,18 +282,24 @@ e36(j,p)..                               sum(i$(ij(i,j)),sum(pp$(ord(pp) le ord(
 
 e37(i,p)..                               Qi(i,p) =E= Q(i)*Ws(i,p);
 e38(i,p)..                               Qo(i,p) =E= Q(i)*Wf(i,p);
-e39(i,p)$(ord(p) gt 1)..                 Qu(i,p) =E= Qu(i,p-1) - Qo(i,p-1) + Qi(i,p);
+e39(i,p)$(ord(p) gt 1)..                 Qu(i,p) =E= Qu(i,p-1) - Qo(i,p) + Qi(i,p);
 e40(i,p)$(ord(p) = 1)..                  Qu(i,p) =E= Qi(i,p);
 *!!! Must also be active when the unit is still being processed!!!!!
-e41..                                    CW =E= sum(i,sum(p,CS(i,p)));
-e42..                                    CW =E= sum(i,sum(p,CR(i,p)));
+*e41(p)..                                 OSC(p) =E= sum(i,CS(i,p)) + R(p);
+e41(p)..                                 OSC(p) =E= sum(i,CS(i,p));
+*e42(p)..                                 OSC(p) =E= sum(i,CR(i,p)) + R(p);
+e42(p)..                                 OSC(p) =E= sum(i,CR(i,p));
 e43(i,p)..                               Fin(i,p) =E= CS(i,p) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p));
 e44(i,p)..                               Fout(i,p) =E= CR(i,p) + sum(ii$(ord(ii) ne ord(i)),FR(i,ii,p));
 e45(i,p)..                               Fin(i,p) =E= Fout(i,p);
 e46(i,p)..                               Tout(i,p) =L= Tout_U(i);
-e47(i,p)..                               Fin(i,p) =L= (Fin_U(i));
-e48(ii,i,p)$(ord(ii) ne ord(i))..        FR(ii,i,p) =L= Fin_U(i);
-
+e47(i,p)..                               Fin(i,p) =L= (Fin_U(i))*(sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)));
+e48(ii,i,p)$(ord(ii) ne ord(i))..        FR(ii,i,p) =L= Fin_U(i)*(sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)));
+e48a(ii,i,p)$(ord(ii) ne ord(i))..       FR(ii,i,p) =L= Fin_U(i)*(sum(pp$(ord(pp) le ord(p)),Ws(ii,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(ii,pp)));
+e48b(ii,i,p)$(ord(ii) ne ord(i))..       yr(ii,i,p) + yr(i,ii,p) =L= 1;
+e48c(ii,i,p)$(ord(ii) ne ord(i))..       FR(ii,i,p) =L= Fin_U(i)*yr(ii,i,p);
+e48d(ii,i,p)$(ord(ii) ne ord(i))..       FR(ii,i,p) =L= Fin(i,p);
+e48e(ii,i,p)$(ord(ii) ne ord(i))..       FR(ii,i,p) =L= Fin(ii,p);
 * Change Ts back to Ts(n,p)
 
 *Linear
@@ -310,44 +320,68 @@ e60(i,p)..                               y3(i,p) =G= Fin(i,p)*Tout_L;
 e61(i,p)..                               0.01*((Qu(i,p)*3600/cp) + CS(i,p)*Tsup + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.01*Fout(i,p)*Tout(i,p);
 e62(i,p)..                               Fin(i,p)*Tin(i,p) =E= CS(i,p)*Tsup + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p));
 
+*e63(p)$(ord(p) ne card(p))..             CW =E= OSC(p);
+e63..                                    CW =E= sum(p,OSC(p));
 $Ontext
 SA.fx('s8','p1') = 0;
 SA.fx('s9','p1') = 0;
 SS.fx('s8','p1') = 0;
 SS.fx('s9','p1') = 0;
 SS.fx(s,'p1') = 0;
-SS.fx(s,'p2') = 0;
+SS.fx('s1','p2') = 0;
 SS.fx(s,'p3') = 0;
 SS.fx(s,'p4') = 0;
 SS.fx(s,'p5') = 0;
 $Offtext
-FR.fx(ii,i,p) = 0;
-Model Maravelias_Grossmann_2003_1a /e1,e2,e3,e4,e5,e6,e7,e8,e82,e11,e12,e13,e14,e15,e16,e17,e18,e181,e19,e191,e20,e21,e22,e231,e232,e241,e242,e251,e252,e26,e27,e28,e29,e30,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e48,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59,e60/;
+*FR.fx(ii,i,p) = 0;
+Model Maravelias_Grossmann_2003_1a /e1,e2,e3,e4,e5,e6,e7,e8,e82,e11,e12,e13,e14,e15,e16,e17,e18,e181,e19,e191,e20,e21,e22,e231,e232,e241,e242,e251,e252,e26,e27,e28,e29,e30,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e48,e48a,e48b,e48c,e48d,e48e,e49,e50,e51,e52,e53,e54,e55,e56,e57,e58,e59,e60,e63/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MIP = CPLEX;
 Option  optcr = 0.000001;
-*Maravelias_Grossmann_2003_1.optfile=1
-*$onecho > cplex.opt
-*iis              1
-*$offecho
+Maravelias_Grossmann_2003_1a.optfile=1
+$onecho > cplex.opt
+iis              1
+$offecho
 Solve Maravelias_Grossmann_2003_1a using MINLP maximising Z;
 
-
-
-Model Maravelias_Grossmann_2003_1b /e1,e2,e3,e4,e5,e6,e7,e8,e82,e11,e12,e13,e14,e15,e16,e17,e18,e181,e19,e191,e20,e21,e22,e231,e232,e241,e242,e251,e252,e26,e27,e28,e29,e30,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e48,e61/;
-*Option SYSOUT = ON;
-*Options LIMROW = 1e9;
-*Options MINLP = DICOPT;
-*Options MIP = CPLEX;
-*Option  optcr = 0.000001;
-*Maravelias_Grossmann_2003_1.optfile=1
-*$onecho > cplex.opt
-*iis              1
-*$offecho
+Model Maravelias_Grossmann_2003_1b /e1,e2,e3,e4,e5,e6,e7,e8,e82,e11,e12,e13,e14,e15,e16,e17,e18,e181,e19,e191,e20,e21,e22,e231,e232,e241,e242,e251,e252,e26,e27,e28,e29,e30,e34,e35,e36,e37,e38,e39,e40,e41,e42,e43,e44,e45,e46,e47,e48,e48a,e48b,e48c,e48d,e48e,e61,e63/;
+Options RESLIM = 3000000000;
+Option SYSOUT = ON;
+Options LIMROW = 1e9;
+Options MINLP = DICOPT;
+Options MIP = CPLEX;
+Maravelias_Grossmann_2003_1b.optfile=1
+$onecho > cplex.opt
+iis              1
+$offecho
+$onecho > dicopt.opt
+maxcycles        10000
+$offecho
 Solve Maravelias_Grossmann_2003_1b using MINLP maximising Z;
 Tin(i,p) = ((CS.L(i,p)*Tsup) + sum(ii$(ord(ii) ne ord(i)),FR.L(ii,i,p)*Tout.L(ii,p)))/Fin.L(i,p);
 Display Tin;
+$Ontext
+Equations
+e41c,e42c,e63c
+;
 
-
-
+e41c(p)..                                OSC(p) =E= sum(i,CS(i,p)) + R(p);
+e42c(p)..                                OSC(p) =E= sum(i,CR(i,p)) + R(p);
+e63c(p)$(ord(p) ne card(p))..            CW =E= OSC(p);
+Model Maravelias_Grossmann_2003_1c /e1,e2,e3,e4,e5,e6,e7,e8,e82,e11,e12,e13,e14,e15,e16,e17,e18,e181,e19,e191,e20,e21,e22,e231,e232,e241,e242,e251,e252,e26,e27,e28,e29,e30,e34,e35,e36,e37,e38,e39,e40,e41c,e42c,e43,e44,e45,e46,e47,e48,e61,e63c/;
+Options RESLIM = 3000000000;
+Option SYSOUT = ON;
+Options LIMROW = 1e9;
+Options MINLP = DICOPT;
+Options MIP = CPLEX;
+Option  optcr = 0.9;
+Maravelias_Grossmann_2003_1c.optfile=1
+*$onecho > cplex.opt
+iis              1
+*$offecho
+*$onecho > dicopt.opt
+maxcycles        10000
+*$offecho
+Solve Maravelias_Grossmann_2003_1c using MINLP maximising Z;
+$Offtext
