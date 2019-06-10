@@ -238,7 +238,7 @@ s21,s22,s23,s24,s25,s26,s27,s28,s29,s30
 s31,s32,s33,s34,s35,s36,s37              Scheduling constraints
 g1,g2,g3,g4,g5,g6,g7,g8,g9,g10
 g11,g12,g13,g14,g15,g16,g17,g18,g19,g20
-g21,g22,g23,g24,g25,g26,g27,g22a,g23a              General CWN constraints
+g21,g22,g23,g24,g25,g26,g27,g22a,g23a    General CWN constraints
 l1,l2,l3,l4,l5,l6,l7,l8,l9,l10
 l11,l12,l13,l14,l15,l16,l17,l18,l19,l20
 l21,l22,l23,l24,l25,l26,l27,l28,l29,l30
@@ -334,7 +334,8 @@ $Offtext
 
 l1(n,p)..                                E(n,p) =E= 0.00085*1.8*(sum(i,y5(n,i,p))-sum(i,CR(n,i,p)*TWout(n)));
 * Why is the CW return term not included?
-l2(n,p)..                                sum(i,y1(n,i,p)) + sum(nn,R(nn,n,p)*TWout(nn)) =L= TWin_U(n)*sum(i,CR(n,i,p));
+*l2(n,p)..                                sum(i,y1(n,i,p)) + sum(nn,R(nn,n,p)*TWout(nn)) =L= TWin_U(n)*sum(i,CR(n,i,p));
+l2(n,p)..                                sum(i,y1(n,i,p)) =L= TWin_U(n)*sum(i,CR(n,i,p));
 * Why is this equation not included in the nonlinear side?
 l3(i,p)..                                (Qu(i,p)*3600/cp) + sum(n,CS(n,i,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),y2(ii,i,p)) =E= y3(i,p);
 *l4(n,p)..                                sum(i,y4(n,i,p)) =E= M(n,p)*Tamb + (OS(n,p) - B(n,p) - sum(nn,R(n,nn,p)))*TWout(n);
@@ -399,7 +400,8 @@ Tout.UP(i,p) = Tout_U(i);
 TWin.UP(n,p) = TWin_U(n);
 OS.UP(n,p) = OS_U(n);
 
-Model Maravelias_Grossmann_2003_1a /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22a,g23a,l3,l5,l6,l7,l8,l9,l10,l11,l12,l13,l14,l15,l16,l17,l18,l19,l20,l25,l26,l27,l28/;
+
+Model Maravelias_Grossmann_2003_1a /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,l1,l2,l3,l4,l5,l6,l7,l8,l9,l10,l11,l12,l13,l14,l15,l16,l17,l18,l19,l20,l21,l22,l23,l24,l25,l26,l27,l28/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MIP = CPLEX;
@@ -410,13 +412,13 @@ iis              1
 $offecho
 Solve Maravelias_Grossmann_2003_1a using MINLP maximising Z;
 
-Model Maravelias_Grossmann_2003_1b /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22a,g23a,n1/;
+Model Maravelias_Grossmann_2003_1b /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,n1/;
 Options RESLIM = 3000000000;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 *Options MINLP = BARON;
 *Options MIP = CPLEX;
-*Option  optcr = 0.1;
+Option  optcr = 0.1;
 Maravelias_Grossmann_2003_1b.optfile=1
 $onecho > cplex.opt
 iis              1
@@ -426,13 +428,15 @@ maxcycles        10000
 $offecho
 Solve Maravelias_Grossmann_2003_1b using MINLP maximising Z;
 
-Model Maravelias_Grossmann_2003_1c /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22a,g23a,n1,n2/;
+
+
+Model Maravelias_Grossmann_2003_1c /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,n1,n2,n4/;
 Options RESLIM = 3000000000;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 *Options MINLP = BARON;
 *Options MIP = CPLEX;
-*Option  optcr = 0.1;
+Option  optcr = 0.1;
 Maravelias_Grossmann_2003_1c.optfile=1
 $onecho > cplex.opt
 iis              1
@@ -441,11 +445,29 @@ $onecho > dicopt.opt
 maxcycles        10000
 $offecho
 Solve Maravelias_Grossmann_2003_1c using MINLP maximising Z;
+
+
+Model Maravelias_Grossmann_2003_1d /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,n1,n2,n4,n5/;
+Options RESLIM = 3000000000;
+Option SYSOUT = ON;
+Options LIMROW = 1e9;
+*Options MINLP = BARON;
+*Options MIP = CPLEX;
+Option  optcr = 0.1;
+Maravelias_Grossmann_2003_1d.optfile=1
+$onecho > cplex.opt
+iis              1
+$offecho
+$onecho > dicopt.opt
+maxcycles        10000
+$offecho
+Solve Maravelias_Grossmann_2003_1d using MINLP maximising Z;
 Tin(i,p) = ((sum(n,CS.L(n,i,p)*TWout(n))) + sum(ii$(ord(ii) ne ord(i)),FR.L(ii,i,p)*Tout.L(ii,p)))/Fin.L(i,p);
 Display Tin,OS_U,C_U;
 
 
 $Ontext
+*$Ontext
 CT Losses and Supply Temperature
 *$Offtext
 
@@ -454,7 +476,7 @@ Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MIP = CPLEX;
 Option  optcr = 0.000001;
-Maravelias_Grossmann_2003_1a.optfile=1
+Maravelias_Grossmann_2003_1c.optfile=1
 *$onecho > cplex.opt
 iis              1
 *$offecho
@@ -464,7 +486,7 @@ Model Maravelias_Grossmann_2003_1d /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s
 Options RESLIM = 3000000000;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
-Options MINLP = BARON;
+*Options MINLP = BARON;
 *Options MIP = CPLEX;
 *Option  optcr = 0.1;
 Maravelias_Grossmann_2003_1d.optfile=1
