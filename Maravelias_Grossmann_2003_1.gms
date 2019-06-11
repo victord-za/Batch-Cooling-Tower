@@ -17,7 +17,7 @@ j                Equipment units
 n                Cooling water sources supplying the cooling water network
                  /n1*n3/
 p                Time points
-                 /p1*p7/
+                 /p1*p8/
 s                States
                  /s1*s9/
 ij(i,j)          Set of tasks that can be scheduled on equipment unit j
@@ -238,7 +238,7 @@ s21,s22,s23,s24,s25,s26,s27,s28,s29,s30
 s31,s32,s33,s34,s35,s36,s37              Scheduling constraints
 g1,g2,g3,g4,g5,g6,g7,g8,g9,g10
 g11,g12,g13,g14,g15,g16,g17,g18,g19,g20
-g21,g22,g23,g24,g25,g26,g27,g22a,g23a    General CWN constraints
+g21,g22,g23,g24,g25,g26,g27,g22a,g23a,g6a,g7a    General CWN constraints
 l1,l2,l3,l4,l5,l6,l7,l8,l9,l10
 l11,l12,l13,l14,l15,l16,l17,l18,l19,l20
 l21,l22,l23,l24,l25,l26,l27,l28,l29,l30
@@ -259,7 +259,7 @@ s6(i)..                                  sum(p,Ws(i,p)) =E= sum(p,Wf(i,p));
 s7(s,p)$(ord(p) ne 1)..                  SA(s,p) + SS(s,p) =E= SA(s,p-1) + sum(i$(ps(i,s)),BO(i,s,p)) - sum(i$(is(i,s)),BI(i,s,p));
 s8(s,p)..                                SA(s,p) =L= Sc(s);
 s9(s,p)$(ord(p) = 1)..                   SA(s,p) + SS(s,p) =E= Sc_0(s) + sum(i$(ps(i,s)),BO(i,s,p)) - sum(i$(is(i,s)),BI(i,s,p));
-s10..                                    Z =E= sum(s,sum(p,zeta(s)*SS(s,p))) - 2*sum(p,CW(p)) - 100*CT;
+s10..                                    Z =E= sum(s,sum(p,zeta(s)*SS(s,p))) - sum(p,CW(p)) - 100*CT;
 s11(j,p)..                               sum(i$(ij(i,j)),sum(pp$(ord(pp) le ord(p)),Ws(i,pp) - Wf(i,pp))) =L= 1;
 s12(i,p)$(ord(p) = 1)..                  Wf(i,p) =E= 0;
 s13(i,p)$(ord(p) = card(p))..            Ws(i,p) =E= 0;
@@ -298,10 +298,10 @@ g3(i,p)$(ord(p) gt 1)..                  Qu(i,p) =E= Qu(i,p-1) - Qo(i,p) + Qi(i,
 g4(i,p)$(ord(p) = 1)..                   Qu(i,p) =E= Qi(i,p);
 *!!! Must also be active when the unit is still being processed!!!!!
 g5(p)..                                  CW(p) =E= sum(n,OS(n,p));
-*g6(n,p)..                                OS(n,p) =E= sum(i,CS(n,i,p)) - M(n,p) + B(n,p);
-*g7(n,p)..                                OS(n,p) =E= sum(i,CR(n,i,p)) - D(n,p) - E(n,p);
-g6(n,p)..                                OS(n,p) =E= sum(i,CS(n,i,p));
-g7(n,p)..                                OS(n,p) =E= sum(i,CR(n,i,p));
+g6(n,p)..                                OS(n,p) =E= sum(i,CS(n,i,p)) - M(n,p) + B(n,p);
+g7(n,p)..                                OS(n,p) =E= sum(i,CR(n,i,p)) - D(n,p) - E(n,p);
+g6a(n,p)..                                OS(n,p) =E= sum(i,CS(n,i,p));
+g7a(n,p)..                                OS(n,p) =E= sum(i,CR(n,i,p));
 g8(i,p)..                                Fin(i,p) =E= sum(n,CS(n,i,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p));
 g9(i,p)..                                Fout(i,p) =E= sum(n,CR(n,i,p)) + sum(ii$(ord(ii) ne ord(i)),FR(i,ii,p));
 g10(i,p)..                               Fin(i,p) =E= Fout(i,p);
@@ -412,7 +412,7 @@ iis              1
 $offecho
 Solve Maravelias_Grossmann_2003_1a using MINLP maximising Z;
 
-Model Maravelias_Grossmann_2003_1b /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,n1/;
+Model Maravelias_Grossmann_2003_1b /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6a,g7a,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,n1/;
 Options RESLIM = 3000000000;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
@@ -464,39 +464,3 @@ $offecho
 Solve Maravelias_Grossmann_2003_1d using MINLP maximising Z;
 Tin(i,p) = ((sum(n,CS.L(n,i,p)*TWout(n))) + sum(ii$(ord(ii) ne ord(i)),FR.L(ii,i,p)*Tout.L(ii,p)))/Fin.L(i,p);
 Display Tin,OS_U,C_U;
-
-
-$Ontext
-*$Ontext
-CT Losses and Supply Temperature
-*$Offtext
-
-Model Maravelias_Grossmann_2003_1c /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,l1,l3,l4,l6,l7,l8,l13,l14,l15,l16,l17,l18,l19,l20,l21,l22,l23,l24,l25,l26,l27,l28/;
-Option SYSOUT = ON;
-Options LIMROW = 1e9;
-Options MIP = CPLEX;
-Option  optcr = 0.000001;
-Maravelias_Grossmann_2003_1c.optfile=1
-*$onecho > cplex.opt
-iis              1
-*$offecho
-Solve Maravelias_Grossmann_2003_1c using MINLP maximising Z;
-
-Model Maravelias_Grossmann_2003_1d /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,n1,n4,n5/;
-Options RESLIM = 3000000000;
-Option SYSOUT = ON;
-Options LIMROW = 1e9;
-*Options MINLP = BARON;
-*Options MIP = CPLEX;
-*Option  optcr = 0.1;
-Maravelias_Grossmann_2003_1d.optfile=1
-*$onecho > cplex.opt
-iis              1
-*$offecho
-*$onecho > dicopt.opt
-maxcycles        10000
-*$offecho
-Solve Maravelias_Grossmann_2003_1d using MINLP maximising Z;
-Tin(i,p) = ((sum(n,CS.L(n,i,p)*TWout(n))) + sum(ii$(ord(ii) ne ord(i)),FR.L(ii,i,p)*Tout.L(ii,p)))/Fin.L(i,p);
-Display Tin,OS_U,C_U;
-$Offtext
