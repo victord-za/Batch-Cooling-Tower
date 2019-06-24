@@ -17,14 +17,14 @@ j                Equipment units
 n                Cooling water sources supplying the cooling water network
                  /n1*n3/
 p                Time points
-                 /p1*p9/
+                 /p1*p7/
 s                States
                  /s1*s9/
 ij(i,j)          Set of tasks that can be scheduled on equipment unit j
                  /i1.j1,i2.j2,i3.j3,i4.j2,i5.j3,i6.j2,i7.j3,i8.j4/
 is(i,s)          Set of tasks that use state s as input
                  /i1.s1,i2.s2,i2.s3,i3.s2,i3.s3,i4.s4,i4.s6,i5.s4,i5.s6,i6.s3,i6.s5,i7.s3,i7.s5,i8.s7/
-ps(i,s)           Set of tasks that produce state s
+ps(i,s)          Set of tasks that produce state s
                  /i1.s4,i2.s6,i3.s6,i4.s5,i4.s8,i5.s5,i5.s8,i6.s7,i7.s7,i8.s5,i8.s9/
 si(s,i)          Set of states consumed in task i
                  /s1.i1,s2.i2,s2.i3,s3.i2,s3.i3,s3.i6,s3.i7,s4.i4,s4.i5,s5.i6,s5.i7,s6.i4,s6.i5,s7.i8/
@@ -72,7 +72,7 @@ y2(ii,i,p)       Linearisation variable 2 for term FR(ii.i.p)*Tout(ii.p)
 y3(i,p)          Linearisation variable 3 for term Fin(i.p)*Tout(i.p)
 y4(n,i,p)        Linearisation variable 4 for term CS(n.i.p)*Tsup(n.p)
 y5(n,i,p)        Linearisation variable 5 for term CR(n.i.p)*TWin(n.p)
-y6(nn,n,p)       Linearisation variable 5 for term R(nn.n.p)*TWin(n.p)
+y6(nn,n,p)       Linearisation variable 6 for term R(nn.n.p)*Tsup(n.p)
 Tout(i,p)        Outlet cooling water temperature from cooling-water-using operation i at time point p(C)
 TWin(n,p)        Return temperature to cooling water source n at time point p (C)
 ;
@@ -236,14 +236,14 @@ s1,s2,s3,s4,s5,s6,s7,s8,s9,s10
 s11,s12,s13,s14,s15,s16,s17,s18,s19,s20
 s21,s22,s23,s24,s25,s26,s27,s28,s29,s30
 s31,s32,s33,s34,s35,s36,s37              Scheduling constraints
-g1,g2,g3,g4,g5,g6,g7,g8,g9,g10
+g1,g2,g3,g4,g5,g6,g6a,g7,g7a,g8,g9,g10
 g11,g12,g13,g14,g15,g16,g17,g18,g19,g20
-g21,g22,g23,g24,g25,g26,g27,g22a,g23a,g6a,g7a    General CWN constraints
+g21,g22,g23,g24,g25,g26,g27              General CWN constraints
 l1,l2,l3,l4,l5,l6,l7,l8,l9,l10
 l11,l12,l13,l14,l15,l16,l17,l18,l19,l20
 l21,l22,l23,l24,l25,l26,l27,l28,l29,l30
-l31,l32                                  Linear CWN constraints
-n1,n2,n3,n4,n5                           Nonlinear CWN constraints
+l31                                      Linear CWN constraints
+n1,n1a,n2,n3,n4                          Nonlinear CWN constraints
 ;
 
 $Ontext
@@ -296,7 +296,6 @@ g1(i,p)..                                Qi(i,p) =E= Q(i)*Ws(i,p);
 g2(i,p)..                                Qo(i,p) =E= Q(i)*Wf(i,p);
 g3(i,p)$(ord(p) gt 1)..                  Qu(i,p) =E= Qu(i,p-1) - Qo(i,p) + Qi(i,p);
 g4(i,p)$(ord(p) = 1)..                   Qu(i,p) =E= Qi(i,p);
-*!!! Must also be active when the unit is still being processed!!!!!
 g5(p)$(ord(p) ne card(p))..              CW =E= sum(n,OS(n,p));
 g6(n,p)..                                OS(n,p) =E= sum(i,CS(n,i,p)) + sum(nn,R(n,nn,p)) - M(n,p) + B(n,p);
 g7(n,p)..                                OS(n,p) =E= sum(i,CR(n,i,p)) + sum(nn,R(nn,n,p)) - D(n,p) - E(n,p);
@@ -305,8 +304,8 @@ g7a(n,p)..                               OS(n,p) =E= sum(i,CR(n,i,p)) + sum(nn,R
 g8(i,p)..                                Fin(i,p) =E= sum(n,CS(n,i,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p));
 g9(i,p)..                                Fout(i,p) =E= sum(n,CR(n,i,p)) + sum(ii$(ord(ii) ne ord(i)),FR(i,ii,p));
 g10(i,p)..                               Fin(i,p) =E= Fout(i,p);
-*g11(n,p)..                               OS(n,p) =L= OS_U(n)*yCT(n);
-g11(n,p)..                               OS(n,p) =L= OS_U(n);
+g11(n,p)..                               OS(n,p) =L= OS_U(n)*yCT(n);
+*g11(n,p)..                               OS(n,p) =L= OS_U(n);
 g12(i,p)..                               Tout(i,p) =L= Tout_U(i)*(sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)));
 g13(i,p)..                               Tout(i,p) =G= Tout_L*(sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)));
 g14(i,p)..                               Fin(i,p) =L= (Fin_U(i))*(sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)));
@@ -317,14 +316,10 @@ g18(ii,i,p)$(ord(ii) ne ord(i))..        FR(ii,i,p) =L= Fin_U(i)*yr(ii,i,p);
 g19(ii,i,p)$(ord(ii) ne ord(i))..        FR(ii,i,p) =L= Fin(i,p);
 g20(ii,i,p)$(ord(ii) ne ord(i))..        FR(ii,i,p) =L= Fin(ii,p);
 g21..                                    CT =E= sum(n,yCT(n));
-* Check the effect of this equation on the model
-g22a(n,i,p)..                            CS(n,i,p) =L= OS_U(n)*(sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)));
-g23a(n,i,p)..                            CR(n,i,p) =L= OS_U(n)*(sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)));
 g22(n,i,p)..                             CS(n,i,p) =L= C_U(n)*(sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)));
 g23(n,i,p)..                             CR(n,i,p) =L= C_U(n)*(sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)));
 g24(n,p)..                               sum(nn,R(nn,n,p)) =L= OS_U(n);
 g25(n,p)..                               D(n,p) =E= 0.002*(sum(i,CR(n,i,p)) + sum(nn,R(nn,n,p)));
-*g25(n,p)..                               D(n,p) =E= 0.002*sum(i,CR(n,i,p));
 g26(n,p)..                               B(n,p) =E= E(n,p)/(CC-1);
 g27(n,p)..                               M(n,p) =E= D(n,p) + E(n,p) + B(n,p);
 
@@ -332,61 +327,55 @@ $Ontext
 -------------------------------Linear constraints-------------------------------
 $Offtext
 
-l1(i,p)..                                (Qu(i,p)*3600/cp) + sum(n,CS(n,i,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),y2(ii,i,p)) =E= y3(i,p);
+*l1(i,p)..                                (Qu(i,p)*3600/cp) + sum(n,CS(n,i,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),y2(ii,i,p)) =E= y3(i,p);
+l1(i,p)..                                (Qu(i,p)*3600/cp) + sum(n,y4(n,i,p)) + sum(ii$(ord(ii) ne ord(i)),y2(ii,i,p)) =E= y3(i,p);
 l2(n,p)..                                sum(i,y1(n,i,p)) + sum(nn,R(nn,n,p)*TWout(nn)) =L= TWin_U(n)*sum(i,CR(n,i,p));
-*l2(n,p)..                                sum(i,y1(n,i,p)) =L= TWin_U(n)*sum(i,CR(n,i,p));
 l3(n,p)..                                E(n,p) =E= 0.00085*1.8*(sum(i,y5(n,i,p))-sum(i,CR(n,i,p)*TWout(n)));
-l4(n,p)..                                sum(i,y4(n,i,p)) =E= M(n,p)*Tamb + (OS(n,p) - B(n,p) - sum(nn,R(n,nn,p)))*TWout(n);
-*l4(n,p)..                                sum(i,y4(n,i,p)) =E= M(n,p)*Tamb + (OS(n,p) - B(n,p))*TWout(n);
-l5(n,p)..                                sum(i,y5(n,i,p)) + sum(nn,y6(nn,n,p)) =E= sum(i,y1(n,i,p)) + sum(nn,R(nn,n,p)*TWout(nn));
-*l5(n,p)..                                sum(i,y5(n,i,p))=E= sum(i,y1(n,i,p));
-* Why is this equation not included in the nonlinear side?
+l4(n,p)..                                sum(i,y4(n,i,p)) + sum(nn,y6(nn,n,p)) =E= M(n,p)*Tamb + (OS(n,p) - B(n,p))*TWout(n);
 
-l6(ii,i,p)$(ord(ii) ne ord(i))..         Wr(ii,i,p) =L= (sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)));
-l7(ii,i,p)$(ord(ii) ne ord(i))..         Wr(ii,i,p) =L= (sum(pp$(ord(pp) le ord(p)),Ws(ii,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(ii,pp)));
-l8(ii,i,p)$(ord(ii) ne ord(i))..         Wr(ii,i,p) =E= Wr(i,ii,p);
+l5(ii,i,p)$(ord(ii) ne ord(i))..         Wr(ii,i,p) =L= (sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)));
+l6(ii,i,p)$(ord(ii) ne ord(i))..         Wr(ii,i,p) =L= (sum(pp$(ord(pp) le ord(p)),Ws(ii,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(ii,pp)));
+l7(ii,i,p)$(ord(ii) ne ord(i))..         Wr(ii,i,p) =E= Wr(i,ii,p);
 
-l9(n,i,p)..                              y1(n,i,p) =G= ((Fin_U(i)*Tout(i,p)) + (CR(n,i,p)*Tout_U(i)) - (Fin_U(i)*Tout_U(i)));
-l10(n,i,p)..                             y1(n,i,p) =L= (Fin_U(i)*Tout(i,p) + CR(n,i,p)*Tout_L - ((sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)))*Fin_U(i)*Tout_L));
-l11(n,i,p)..                             y1(n,i,p) =L= CR(n,i,p)*Tout_U(i);
-l12(n,i,p)..                             y1(n,i,p) =G= CR(n,i,p)*Tout_L;
+l8(n,i,p)..                              y1(n,i,p) =G= ((Fin_U(i)*Tout(i,p)) + (CR(n,i,p)*Tout_U(i)) - (Fin_U(i)*Tout_U(i)));
+l9(n,i,p)..                              y1(n,i,p) =L= (Fin_U(i)*Tout(i,p) + CR(n,i,p)*Tout_L - ((sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)))*Fin_U(i)*Tout_L));
+l10(n,i,p)..                             y1(n,i,p) =L= CR(n,i,p)*Tout_U(i);
+l11(n,i,p)..                             y1(n,i,p) =G= CR(n,i,p)*Tout_L;
 
-l13(ii,i,p)$(ord(ii) ne ord(i))..        y2(ii,i,p) =G= ((Fin_U(i)*Tout(ii,p)) + (FR(ii,i,p)*Tout_U(ii)) - (Fin_U(i)*Tout_U(ii)));
-l14(ii,i,p)$(ord(ii) ne ord(i))..        y2(ii,i,p) =L= (Fin_U(i)*Tout(ii,p) + FR(ii,i,p)*Tout_L - Wr(ii,i,p)*Fin_U(i)*Tout_L);
-l15(ii,i,p)$(ord(ii) ne ord(i))..        y2(ii,i,p) =L= FR(ii,i,p)*Tout_U(ii);
-l16(ii,i,p)$(ord(ii) ne ord(i))..        y2(ii,i,p) =G= FR(ii,i,p)*Tout_L;
+l12(ii,i,p)$(ord(ii) ne ord(i))..        y2(ii,i,p) =G= ((Fin_U(i)*Tout(ii,p)) + (FR(ii,i,p)*Tout_U(ii)) - (Fin_U(i)*Tout_U(ii)));
+l13(ii,i,p)$(ord(ii) ne ord(i))..        y2(ii,i,p) =L= (Fin_U(i)*Tout(ii,p) + FR(ii,i,p)*Tout_L - Wr(ii,i,p)*Fin_U(i)*Tout_L);
+l14(ii,i,p)$(ord(ii) ne ord(i))..        y2(ii,i,p) =L= FR(ii,i,p)*Tout_U(ii);
+l15(ii,i,p)$(ord(ii) ne ord(i))..        y2(ii,i,p) =G= FR(ii,i,p)*Tout_L;
 
-l17(i,p)..                               y3(i,p) =G= ((Fin_U(i)*Tout(i,p)) + (Fin(i,p)*Tout_U(i)) - (Fin_U(i)*Tout_U(i)));
-l18(i,p)..                               y3(i,p) =L= ((Fin_U(i)*Tout(i,p)) + (Fin(i,p)*Tout_L) - ((sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)))*Fin_U(i)*Tout_L));
-l19(i,p)..                               y3(i,p) =L= Fin(i,p)*Tout_U(i);
-l20(i,p)..                               y3(i,p) =G= Fin(i,p)*Tout_L;
+l16(i,p)..                               y3(i,p) =G= ((Fin_U(i)*Tout(i,p)) + (Fin(i,p)*Tout_U(i)) - (Fin_U(i)*Tout_U(i)));
+l17(i,p)..                               y3(i,p) =L= ((Fin_U(i)*Tout(i,p)) + (Fin(i,p)*Tout_L) - ((sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)))*Fin_U(i)*Tout_L));
+l18(i,p)..                               y3(i,p) =L= Fin(i,p)*Tout_U(i);
+l19(i,p)..                               y3(i,p) =G= Fin(i,p)*Tout_L;
 
-l21(n,i,p)..                             y4(n,i,p) =G= (Fin_U(i)*Tsup(n,p) + CS(n,i,p)*Tamb - Fin_U(i)*Tamb);
-l22(n,i,p)..                             y4(n,i,p) =L= (Fin_U(i)*Tsup(n,p) + CS(n,i,p)*Tcmin - ((sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)))*Fin_U(i)*Tcmin));
-l23(n,i,p)..                             y4(n,i,p) =L= CS(n,i,p)*Tamb;
-l24(n,i,p)..                             y4(n,i,p) =G= CS(n,i,p)*Tcmin;
+l20(n,i,p)..                             y4(n,i,p) =G= (Fin_U(i)*Tsup(n,p) + CS(n,i,p)*Tamb - Fin_U(i)*Tamb);
+l21(n,i,p)..                             y4(n,i,p) =L= (Fin_U(i)*Tsup(n,p) + CS(n,i,p)*Tcmin - ((sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)))*Fin_U(i)*Tcmin));
+l22(n,i,p)..                             y4(n,i,p) =L= CS(n,i,p)*Tamb;
+l23(n,i,p)..                             y4(n,i,p) =G= CS(n,i,p)*Tcmin;
 
-l25(n,i,p)..                             y5(n,i,p) =G= (Fin_U(i)*TWin(n,p) + CR(n,i,p)*TWin_U(n) - Fin_U(i)*TWin_U(n));
-l26(n,i,p)..                             y5(n,i,p) =L= (Fin_U(i)*TWin(n,p) + CR(n,i,p)*Tcmin - ((sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)))*Fin_U(i)*Tcmin));
-l27(n,i,p)..                             y5(n,i,p) =L= CR(n,i,p)*TWin_U(n);
-l28(n,i,p)..                             y5(n,i,p) =G= CR(n,i,p)*Tcmin;
+l24(n,i,p)..                             y5(n,i,p) =G= (Fin_U(i)*TWin(n,p) + CR(n,i,p)*TWin_U(n) - Fin_U(i)*TWin_U(n));
+l25(n,i,p)..                             y5(n,i,p) =L= (Fin_U(i)*TWin(n,p) + CR(n,i,p)*Tcmin - ((sum(pp$(ord(pp) le ord(p)),Ws(i,pp)) - sum(pp$(ord(pp) le ord(p)),Wf(i,pp)))*Fin_U(i)*Tcmin));
+l26(n,i,p)..                             y5(n,i,p) =L= CR(n,i,p)*TWin_U(n);
+l27(n,i,p)..                             y5(n,i,p) =G= CR(n,i,p)*Tcmin;
 
-l29(nn,n,p)..                            y6(nn,n,p) =G= (OS_U(n)*TWin(n,p)) + R(nn,n,p)*TWin_U(n) - OS_U(n)*TWin_U(n);
-l30(nn,n,p)..                            y6(nn,n,p) =L= (OS_U(n)*TWin(n,p)) + R(nn,n,p)*TWout(nn) - OS_U(n)*TWout(nn);
-l31(nn,n,p)..                            y6(nn,n,p) =L= R(nn,n,p)*TWin_U(n);
-l32(nn,n,p)..                            y6(nn,n,p) =G= R(nn,n,p)*TWout(nn);
+l28(nn,n,p)..                            y6(nn,n,p) =G= (OS_U(n)*Tsup(n,p)) + R(nn,n,p)*Tamb - OS_U(n)*Tamb;
+l29(nn,n,p)..                            y6(nn,n,p) =L= (OS_U(n)*Tsup(n,p)) + R(nn,n,p)*Tcmin - OS_U(n)*Tcmin;
+l30(nn,n,p)..                            y6(nn,n,p) =L= R(nn,n,p)*Tamb;
+l31(nn,n,p)..                            y6(nn,n,p) =G= R(nn,n,p)*Tcmin;
 
 $Ontext
 ------------------------------Nonlinear constraints-----------------------------
 $Offtext
 
-n1(i,p)..                                0.01*((Qu(i,p)*3600/cp) + sum(n,CS(n,i,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.01*Fout(i,p)*Tout(i,p);
+n1a(i,p)..                               0.01*((Qu(i,p)*3600/cp) + sum(n,CS(n,i,p)*TWout(n)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.01*Fout(i,p)*Tout(i,p);
+n1(i,p)..                                0.01*((Qu(i,p)*3600/cp) + sum(n,CS(n,i,p)*Tsup(n,p)) + sum(ii$(ord(ii) ne ord(i)),FR(ii,i,p)*Tout(ii,p))) =E= 0.01*Fout(i,p)*Tout(i,p);
 n2(n,p)..                                TWin(n,p)*(sum(i,CR(n,i,p)) + sum(nn,R(nn,n,p))) =E= sum(i,CR(n,i,p)*Tout(i,p)) + sum(nn,R(nn,n,p)*TWout(nn));
-*n2(n,p)..                                TWin(n,p)*(sum(i,CR(n,i,p))) =E= sum(i,CR(n,i,p)*Tout(i,p));
 n3(n,p)..                                E(n,p) =E= 0.00085*1.8*(sum(i,CR(n,i,p)) + sum(nn,R(nn,n,p)))*(TWin(n,p)-TWout(n));
-*n3(n,p)..                                E(n,p) =E= 0.00085*1.8*(sum(i,CR(n,i,p)))*(TWin(n,p)-TWout(n));
-n4(n,p)..                                Tsup(n,p)*sum(i,CS(n,i,p)) =E= M(n,p)*Tamb + (OS(n,p) - B(n,p) - sum(nn,R(n,nn,p)))*TWout(n);
-*n4(n,p)..                                Tsup(n,p)*sum(i,CS(n,i,p)) =E= M(n,p)*Tamb + (OS(n,p) - B(n,p))*TWout(n);
+n4(n,p)..                                Tsup(n,p)*(sum(nn,R(n,nn,p)) + sum(i,CS(n,i,p))) =E= M(n,p)*Tamb + (OS(n,p) - B(n,p))*TWout(n);
 
 $Ontext
 -----------------------------------Boundaries-----------------------------------
@@ -399,18 +388,18 @@ TWin.UP(n,p) = TWin_U(n);
 OS.UP(n,p) = OS_U(n);
 
 
-Model Maravelias_Grossmann_2003_1a /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,l1,l2,l3,l4,l6,l7,l8,l9,l10,l11,l12,l13,l14,l15,l16,l17,l18,l19,l20,l21,l22,l23,l24,l25,l26,l27,l28/;
+Model Maravelias_Grossmann_2003_1a /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,l1,l2,l3,l4,l5,l6,l7,l8,l9,l10,l11,l12,l13,l14,l15,l16,l17,l18,l19,l20,l21,l22,l23,l24,l25,l26,l27,l28,l29,l30,l31/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MIP = CPLEX;
-Option  optcr = 0.000001;
+Option  optcr = 0.1;
 Maravelias_Grossmann_2003_1a.optfile=1
 $onecho > cplex.opt
 iis              1
 $offecho
 Solve Maravelias_Grossmann_2003_1a using MINLP maximising Z;
 
-Model Maravelias_Grossmann_2003_1b /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6a,g7a,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,n1/;
+Model Maravelias_Grossmann_2003_1b /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6a,g7a,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,n1a/;
 Options RESLIM = 3000000000;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
@@ -428,7 +417,7 @@ Solve Maravelias_Grossmann_2003_1b using MINLP maximising Z;
 
 
 
-Model Maravelias_Grossmann_2003_1c /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,n1,n2,n3/;
+Model Maravelias_Grossmann_2003_1c /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,n1a,n2,n3/;
 Options RESLIM = 3000000000;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
