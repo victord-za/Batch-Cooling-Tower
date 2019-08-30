@@ -150,7 +150,6 @@ Q(i)             Heat of reaction of cooling-water-using operation i (kW.t^-1)
                   i4     18
                   i5     6
                   i6     15/
-
 Sc_0(s)          Initial amount of state s (t)
                  /s1     400
                   s2     400
@@ -414,7 +413,7 @@ Approach.LO(n,p) = 0.01;
 yVC.FX(n,p)$(ord(p) = card(p)) = 0;
 R.FX(np,n,p)$(ord(np) ne ord(n)) = 0;
 
-Model Case1_Opt_a /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,l1,l2,l3,l4,l5,l6,l7,l8,l9,l10,l11,l12,l13,l14,l15,l16,l17,l18,l19,l20,l21,l22,l23,l24,l25,l26,l27,l28,l29,l30,l31,l32,l33,l34,l35,c1,c2,c9,test,test2,test3,test4/;
+Model Case1_Opt_a /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,l1,l2,l3,l4,l5,l6,l7,l8,l9,l10,l11,l12,l13,l14,l15,l16,l17,l18,l19,l20,l21,l22,l23,l24,l25,l26,l27,l28,l29,l30,l31,l32,l33,l34,l35,c1,c2,c9/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MIP = CPLEX;
@@ -426,7 +425,7 @@ $offecho
 Solve Case1_Opt_a using MIP maximising Profitl;
 
 
-Model Case1_Opt_b /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,n1,n2,n3,n4,c1,c2,c3,c9,test,test2,test3,test4/;
+Model Case1_Opt_b /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,n1,n2,n3,n4,c1,c2,c3,c9/;
 Options RESLIM = 3000000000;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
@@ -436,7 +435,7 @@ Solve Case1_Opt_b using MINLP maximising Profitl;
 
 *Zl.FX = Zl.L;
 
-Model Case1_Opt_c /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,n1,n2,n3,n4,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,test,test2,test3,test4/;
+Model Case1_Opt_c /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,n1,n2,n3,n4,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10/;
 Options RESLIM = 3000000000;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
