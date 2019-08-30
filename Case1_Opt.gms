@@ -24,7 +24,7 @@ io(i,s)          Set of tasks that produce state s
                  /i1.s5,i2.s5,i3.s3,i3.s4,i4.s3,i4.s4,i5.s6,i6.s7/
 si(s,i)          Set of states consumed in task i
                  /s1.i1,s1.i2,s2.i3,s2.i4,s3.i1,s3.i2,s4.i6,s5.i5,s5.i6/
-so(s,i)          Set of states produced from t
+so(s,i)          Set of states produced from task i
                  /s3.i3,s3.i4,s4.i3,s4.i4,s5.i1,s5.i2,s6.i5,s7.i6/
 zcw(i)           Set of task that produce at least one ZW state or require CW
                  /i1,i2,i3,i4,i5,i6/
