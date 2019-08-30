@@ -17,7 +17,7 @@ j                Equipment units
 n                Cooling water sources supplying the cooling water network
                  /n1*n3/
 p                Time points
-                 /p1*p7/
+                 /p1*p9/
 s                States
                  /s1*s9/
 ij(i,j)          Set of tasks that can be scheduled on equipment unit j
@@ -399,6 +399,8 @@ iis              1
 $offecho
 Solve Maravelias_Grossmann_2003_1a using MINLP maximising Z;
 
+*$Ontext
+
 Model Maravelias_Grossmann_2003_1b /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6a,g7a,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,n1a/;
 Options RESLIM = 3000000000;
 Option SYSOUT = ON;
@@ -433,21 +435,22 @@ maxcycles        10000
 $offecho
 Solve Maravelias_Grossmann_2003_1c using MINLP maximising Z;
 
+*$Offtext
 
 Model Maravelias_Grossmann_2003_1d /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,s37,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,n1,n2,n3,n4/;
 Options RESLIM = 3000000000;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
-*Options MINLP = BARON;
+Options MINLP = BARON;
 *Options MIP = CPLEX;
-Option  optcr = 0.1;
-Maravelias_Grossmann_2003_1d.optfile=1
-$onecho > cplex.opt
-iis              1
-$offecho
-$onecho > dicopt.opt
-maxcycles        10000
-$offecho
+Option  optcr = 0.01;
+*Maravelias_Grossmann_2003_1d.optfile=1
+*$onecho > cplex.opt
+*iis              1
+*$offecho
+*$onecho > dicopt.opt
+*maxcycles        10000
+*$offecho
 Solve Maravelias_Grossmann_2003_1d using MINLP maximising Z;
 Tin(i,p) = ((sum(n,CS.L(n,i,p)*Tsup.L(n,p))) + sum(ii$(ord(ii) ne ord(i)),FR.L(ii,i,p)*Tout.L(ii,p)))/Fin.L(i,p);
 Display Tin,OS_U,C_U;
