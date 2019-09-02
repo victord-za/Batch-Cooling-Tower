@@ -230,7 +230,7 @@ Table rho(i,s)   Mass balance coefficient for the consumption or production of s
 ;
 
 CRS_U(n) = OS_U(n)*(1.002+(0.00153*(Tret_U(n)-Tct(n))));
-Fin_U(i) = Q(i)*3600/(cp*(Tout_U(i)-Tin_U(i)));
+Fin_U(i) = Q(i)*B_U(i)*3600/(cp*(Tout_U(i)-Tin_U(i)));
 Tct_L = smin(n,Tct(n));
 
 Equations
@@ -404,7 +404,7 @@ $Ontext
 -----------------------------------Boundaries-----------------------------------
 $Offtext
 
-*FR.fx(ip,i,p) = 0;
+*FR.FX(ip,i,p) = 0;
 Fin.UP(i,p) = Fin_U(i);
 Tout.UP(i,p) = Tout_U(i);
 Tret.UP(n,p) = Tret_U(n);
@@ -425,7 +425,7 @@ $offecho
 Solve Case1_Opt_a using MIP maximising Profitl;
 
 
-Model Case1_Opt_b /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,n1,n2,n3,n4,c1,c2,c3,c9/;
+Model Case1_Opt_b /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,n1,n2,n3,n4,c1,c2,c9/;
 Options RESLIM = 3000000000;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
@@ -433,9 +433,8 @@ Options MINLP = BARON;
 Option  optcr = 0.01;
 Solve Case1_Opt_b using MINLP maximising Profitl;
 
-*Zl.FX = Zl.L;
 
-Model Case1_Opt_c /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,n1,n2,n3,n4,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10/;
+Model Case1_Opt_c /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,n1,n2,n3,n4,c1,c2,c3,c4,c5,c6,c7,c8,c10/;
 Options RESLIM = 3000000000;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
