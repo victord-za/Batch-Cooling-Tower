@@ -1,8 +1,8 @@
-$Title Case1_Opt
+$Title Case1_Base1
 $OnEmpty
 $Ontext
          Case study 1
-         Optimal scenario
+         Base case 1
 $Offtext
 
 Sets
@@ -13,7 +13,7 @@ j                Equipment units
 n                Cooling water sources supplying the cooling water network
                  /n1*n3/
 p                Time points
-                 /p1*p9/
+                 /p1*p8/
 s                States
                  /s1*s7/
 ij(i,j)          Set of tasks that can be scheduled on equipment unit j
@@ -52,6 +52,9 @@ CR(n,i,p)        Return cooling water flow to cooling water source n from coolin
 CS(n,i,p)        Cooling water flow supplied from cooling water source n to cooling-water-using operation i at time point p (t.h^-1)
 CT               Total number of active cooling towers
 CW               Total cooling water flow rate supplied from all cooling towers (t.h^-1)
+CW1
+CW2
+CW3
 D(n,p)           Drift loss in cooling tower n at time point p (t.h^-1)
 E(n,p)           Evaporation loss in cooling tower n at time point p (t.h^-1)
 Fin(i,p)         Total cooling water flow into cooling-water-using operation i including supply and reused water at time point p(t.h^-1)
@@ -66,20 +69,20 @@ R(np,n,p)        Cooling water recycled directly from cooling tower np to coolin
 Range(n,p)       Range temperature for cooling tower n at time point p (C)
 SA(s,p)          Amount of state s available at time point p (t)
 SS(s,p)          Sales of state s at point p (t)
-t(p)             Time that corresponds to time point p (h)
 Tau(i,p)         Duration of task i that starts at time point p (h)
-Tsup(n,p)        Supply temperature from cooling tower n at time point p to cooling water network (C)
+t(p)             Time that corresponds to time point p (h)
 ts(i,p)          Start time of task i that starts at time point p (h)
 tf(i,p)          Finish time of task i that starts at time point p (h)
+Tout(i,p)        Outlet cooling water temperature from cooling-water-using operation i at time point p(C)
+Tret(n,p)        Return temperature to cooling water source n at time point p (C)
+Tsup(n,p)        Supply temperature from cooling tower n at time point p to cooling water network (C)
 y1(n,i,p)        Linearisation variable 1 for term CR(n.i.p)*Tout(i.p)
 y2(ip,i,p)       Linearisation variable 2 for term FR(ip.i.p)*Tout(ip.p)
 y3(i,p)          Linearisation variable 3 for term Fin(i.p)*Tout(i.p)
 y4(n,i,p)        Linearisation variable 4 for term CS(n.i.p)*Tsup(n.p)
-y5(n,i,p)        Linearisation variable 5 for term CR(n.i.p)*Tret(n.p)
+y5(n,i,p)        Linearisation variable 5 for term CR(n.i.p)*TWin(n.p)
 y6(np,n,p)       Linearisation variable 6 for term R(np.n.p)*Tsup(n.p)
-y7(np,n,p)       Linearisation variable 7 for term R(np.n.p)*Tret(n.p)
-Tout(i,p)        Outlet cooling water temperature from cooling-water-using operation i at time point p(C)
-Tret(n,p)        Return temperature to cooling water source n at time point p (C)
+y7(np,n,p)       Linearisation variable 7 for term R(np.n.p)*TWin(n.p)
 ;
 
 Binary variables
@@ -87,17 +90,17 @@ Wr(ip,i,p)       Binary variable indicating whether tasks ip and i both take pla
 Ws(i,p)          Binary variable indicating whether task i starts at time point p
 Wp(i,p)          Binary variable indicating whether task i is being processed at time point p
 Wf(i,p)          Binary variable indicating whether task i finishes at or before time point p
-yVC(n,p)         Binary variable associated with variable cooling tower costing
-yCT(n)           Binary variable indicating activity of cooling tower n
-yr(ip,i,p)       Binary variable indicating whether cooling water is reused by task i from task ip during time point p
 Zs(j,p)          Binary variable indicating whether a task in I(j) is assigned to start in unit j at time point p
 Zp(j,p)          Binary variable indicating whether a task in I(j) is being processed in unit j at time point p
 Zf(j,p)          Binary variable indicating whether a task in I(j) assigned to unit j finishes at or before time point p
+yVC(n,p)         Binary variable associated with variable cooling tower costing
+yCT(n)           Binary variable indicating activity of cooling tower n
+yr(ip,i,p)       Binary variable indicating whether cooling water is reused by task i from task ip during time point p
 ;
 
 Free variables
-Profitl
-Profit
+Profitp          Total production profit excluding utility costs ($)
+Profit           Total profit ($)
 ;
 
 Parameters
@@ -150,7 +153,6 @@ Q(i)             Heat of reaction of cooling-water-using operation i (kW.t^-1)
                   i4     18
                   i5     6
                   i6     15/
-
 Sc_0(s)          Initial amount of state s (t)
                  /s1     400
                   s2     400
@@ -238,10 +240,11 @@ Equations
 s1,s2,s3,s4,s5,s6,s7,s8,s9,s10
 s11,s12,s13,s14,s15,s16,s17,s18,s19,s20
 s21,s22,s23,s24,s25,s26,s27,s28,s29,s30
-s31,s32,s33,s34,s35,s36                  Scheduling constraints
+s31,s32,s33,s34,s35,s36,s37              Scheduling constraints
 g1,g2,g3,g4,g5,g6,g6a,g7,g7a,g8,g9,g10
 g11,g12,g13,g14,g15,g16,g17,g18,g19,g20
-g21,g22,g23,g24,g25,g26,g27,g28,g29      General CWN constraints
+g21,g22,g23,g24,g25,g26,g27,g28,g29,g30
+g31,g32                                  General CWN constraints
 l1,l2,l3,l4,l5,l6,l7,l8,l9,l10
 l11,l12,l13,l14,l15,l16,l17,l18,l19,l20
 l21,l22,l23,l24,l25,l26,l27,l28,l29,l30
@@ -249,7 +252,6 @@ l31,l32,l33,l34,l35                      Linear CWN constraints
 n1,n2,n3,n4                              Nonlinear CWN constraints
 c1,c2,c3,c4,c5,c6,c7,c8,c9,c10           Costing constraints
 ;
-
 $Ontext
 -----------------------------Scheduling constraints-----------------------------
 $Offtext
@@ -302,8 +304,6 @@ g4(i,p)$(ord(p) = 1)..                   Qu(i,p) =E= Qi(i,p);
 g5(p)$(ord(p) ne card(p))..              CW =E= sum(n,OS(n,p));
 g6(n,p)..                                OS(n,p) =E= sum(i,CS(n,i,p)) + sum(np,R(n,np,p)) - M(n,p) + B(n,p);
 g7(n,p)..                                OS(n,p) =E= sum(i,CR(n,i,p)) + sum(np,R(np,n,p)) - D(n,p) - E(n,p);
-g6a(n,p)..                               OS(n,p) =E= sum(i,CS(n,i,p)) + sum(np,R(n,np,p));
-g7a(n,p)..                               OS(n,p) =E= sum(i,CR(n,i,p)) + sum(np,R(np,n,p));
 g8(i,p)..                                Fin(i,p) =E= sum(n,CS(n,i,p)) + sum(ip$(ord(ip) ne ord(i)),FR(ip,i,p));
 g9(i,p)..                                Fout(i,p) =E= sum(n,CR(n,i,p)) + sum(ip$(ord(ip) ne ord(i)),FR(i,ip,p));
 g10(i,p)..                               Fin(i,p) =E= Fout(i,p);
@@ -326,6 +326,9 @@ g26(n,p)..                               B(n,p) =E= E(n,p)/(CC-1);
 g27(n,p)..                               M(n,p) =E= D(n,p) + E(n,p) + B(n,p);
 g28(n,p)..                               Range(n,p) =E= Tret(n,p) - Tct(n);
 g29(n,p)..                               Approach(n,p) =E= Tret(n,p) - Twb;
+g30(p)..                                 CW1 =E= OS('n1',p);
+g31(p)..                                 CW2 =E= OS('n2',p);
+g32(p)..                                 CW3 =E= OS('n3',p);
 
 
 $Ontext
@@ -376,6 +379,7 @@ l33(np,n,p)..                            y7(np,n,p) =L= (OS_U(n)*Tret(n,p) + R(n
 l34(np,n,p)..                            y7(np,n,p) =L= R(np,n,p)*Tret_U(n);
 l35(np,n,p)..                            y7(np,n,p) =G= R(np,n,p)*Tct_L;
 
+
 $Ontext
 ------------------------------Nonlinear constraints-----------------------------
 $Offtext
@@ -397,8 +401,8 @@ c5(n,p)$(ord(p) ne card(p))..            cVC(n) =L= cVCP(n,p) + BM*(1-yVC(n,p));
 c6(n)..                                  sum(p,yVC(n,p)) =E= 1;
 c7..                                     cTC =E=  cFC*CT + sum(n,cVC(n));
 c8..                                     cTO =E= sum(p,cPO(p)*(t(p)-t(p-1)))/8000;
-c9..                                     Profitl =E= sum(s,sum(p,zeta(s)*SS(s,p))) - cTR - cFC*CT - sum(p,cPO(p))*H/8000;
-*OC only estimated. Only fixed CC taken into account.
+c9..                                     Profitp =E= sum(s,sum(p,zeta(s)*SS(s,p))) - cTR;
+*Only takes profit from production into account. No utility considerations
 c10..                                    Profit =E= sum(s,sum(p,zeta(s)*SS(s,p))) - cTR - cTC  - cTO;
 
 $Ontext
@@ -412,36 +416,56 @@ Tret.UP(n,p) = Tret_U(n);
 OS.UP(n,p) = OS_U(n);
 Approach.LO(n,p) = 0.01;
 yVC.FX(n,p)$(ord(p) = card(p)) = 0;
-R.FX(np,n,p)$(ord(np) ne ord(n)) = 0;
+CS.FX('n1','i2',p) = 0;
+CR.FX('n1','i2',p) = 0;
+CS.FX('n1','i4',p) = 0;
+CR.FX('n1','i4',p) = 0;
+CS.FX('n1','i5',p) = 0;
+CR.FX('n1','i5',p) = 0;
+CS.FX('n1','i6',p) = 0;
+CR.FX('n1','i6',p) = 0;
+CS.FX('n2','i1',p) = 0;
+CR.FX('n2','i1',p) = 0;
+CS.FX('n2','i3',p) = 0;
+CR.FX('n2','i3',p) = 0;
+CR.FX('n3',i,p) = 0;
+FR.FX(i,ip,p) = 0;
+R.FX('n1','n2',p) = 0;
+R.FX('n1','n3',p) = 0;
+R.FX('n2','n1',p) = 0;
+R.FX('n2','n3',p) = 0;
+R.FX('n3','n1',p) = 0;
+R.FX('n3','n2',p) = 0;
 
-Model Case1_Opt_a /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,l1,l2,l3,l4,l5,l6,l7,l8,l9,l10,l11,l12,l13,l14,l15,l16,l17,l18,l19,l20,l21,l22,l23,l24,l25,l26,l27,l28,l29,l30,l31,l32,l33,l34,l35,c1,c2,c9/;
+
+Model Case1_Base1a /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,l1,l2,l3,l4,l5,l6,l7,l8,l9,l10,l11,l12,l13,l14,l15,l16,l17,l18,l19,l20,l21,l22,l23,l24,l25,l26,l27,l28,l29,l30,l31,l32,l33,l34,l35,c1,c9/;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MIP = CPLEX;
 Option  optcr = 0.1;
-Case1_Opt_a.optfile=1
+Case1_Base1a.optfile=1
 $onecho > cplex.opt
 iis              1
 $offecho
-Solve Case1_Opt_a using MIP maximising Profitl;
+Solve Case1_Base1a using MINLP maximising Profitp;
 
 
-Model Case1_Opt_b /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,n1,n2,n3,n4,c1,c2,c3,c9/;
+Model Case1_Base1b /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,n1,n2,n3,n4,c1,c9/;
 Options RESLIM = 3000000000;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MINLP = BARON;
-Option  optcr = 0.01;
-Solve Case1_Opt_b using MINLP maximising Profitl;
+Option  optcr = 0.0;
+Solve Case1_Base1b using MINLP maximising Profitp;
 
-*Zl.FX = Zl.L;
+Profitp.FX = Profitp.L;
 
-Model Case1_Opt_c /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,n1,n2,n3,n4,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10/;
+Model Case1_Base1c /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,g30,g31,n1,n2,n3,n4,c1,c2,c3,c4,c5,c6,c7,c8,c10/;
 Options RESLIM = 3000000000;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MINLP = BARON;
-Option  optcr = 0.00000001;
-Solve Case1_Opt_c using MINLP maximising Profit;
+Option  optcr = 0.0;
+Solve Case1_Base1c using MINLP maximising Profit;
 Tin(i,p) = ((sum(n,CS.L(n,i,p)*Tsup.L(n,p))) + sum(ip$(ord(ip) ne ord(i)),FR.L(ip,i,p)*Tout.L(ip,p)))/Fin.L(i,p);
-Display Tin,OS_U,CRS_U;
+Display Tin,OS_U,CRS_U,CW.L;
