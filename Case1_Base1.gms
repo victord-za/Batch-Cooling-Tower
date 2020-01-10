@@ -51,10 +51,9 @@ cTR              Total raw material costs ($)
 CR(n,i,p)        Return cooling water flow to cooling water source n from cooling-water-using operation i at time point p (t.h^-1)
 CS(n,i,p)        Cooling water flow supplied from cooling water source n to cooling-water-using operation i at time point p (t.h^-1)
 CT               Total number of active cooling towers
-CW               Total cooling water flow rate supplied from all cooling towers (t.h^-1)
-CW1
-CW2
-CW3
+CW1              Total cooling water flow rate supplied from cooling tower 1 (t.h^-1)
+CW2              Total cooling water flow rate supplied from cooling tower 2 (t.h^-1)
+CW3              Total cooling water flow rate supplied from cooling tower 3 (t.h^-1)
 D(n,p)           Drift loss in cooling tower n at time point p (t.h^-1)
 E(n,p)           Evaporation loss in cooling tower n at time point p (t.h^-1)
 Fin(i,p)         Total cooling water flow into cooling-water-using operation i including supply and reused water at time point p(t.h^-1)
@@ -86,19 +85,20 @@ y7(np,n,p)       Linearisation variable 7 for term R(np.n.p)*TWin(n.p)
 ;
 
 Binary variables
+Wf(i,p)          Binary variable indicating whether task i finishes at or before time point p
+Wp(i,p)          Binary variable indicating whether task i is being processed at time point p
 Wr(ip,i,p)       Binary variable indicating whether tasks ip and i both take place during time point p
 Ws(i,p)          Binary variable indicating whether task i starts at time point p
-Wp(i,p)          Binary variable indicating whether task i is being processed at time point p
-Wf(i,p)          Binary variable indicating whether task i finishes at or before time point p
-Zs(j,p)          Binary variable indicating whether a task in I(j) is assigned to start in unit j at time point p
-Zp(j,p)          Binary variable indicating whether a task in I(j) is being processed in unit j at time point p
-Zf(j,p)          Binary variable indicating whether a task in I(j) assigned to unit j finishes at or before time point p
-yVC(n,p)         Binary variable associated with variable cooling tower costing
 yCT(n)           Binary variable indicating activity of cooling tower n
 yr(ip,i,p)       Binary variable indicating whether cooling water is reused by task i from task ip during time point p
+yVC(n,p)         Binary variable associated with variable cooling tower costing
+Zf(j,p)          Binary variable indicating whether a task in I(j) assigned to unit j finishes at or before time point p
+Zp(j,p)          Binary variable indicating whether a task in I(j) is being processed in unit j at time point p
+Zs(j,p)          Binary variable indicating whether a task in I(j) is assigned to start in unit j at time point p
 ;
 
 Free variables
+CW               Total cooling water flow rate supplied from all cooling towers (t.h^-1)
 Profitp          Total production profit excluding utility costs ($)
 Profit           Total profit ($)
 ;
@@ -395,7 +395,7 @@ $Offtext
 
 c1..                                     cTR =E= sum(i,sum(s,sum(p,cRM(s)*BI(i,s,p))));
 c2(p)..                                  cPO(p) =E= sum(n,(110*OS(n,p) + 2275.132*M(n,p) + 1138*B(n,p)));
-c3(n,p)..                                cVCP(n,p) =E= (746.749*(OS(n,p)**0.79)*(Range(n,p)**0.57)*(1/(Approach(n,p)**0.9924))*(((0.022*Twb)+(0.39))*2.447))*H/8000;
+c3(n,p)..                                cVCP(n,p) =E= (746.749*(OS(n,p)**0.79)*(Range(n,p)**0.57)*(1/(Approach(n,p)**0.9924))+(((0.022*Twb)+(0.39))**2.447))*H/8000;
 c4(n,p)..                                cVC(n) =G= cVCP(n,p);
 c5(n,p)$(ord(p) ne card(p))..            cVC(n) =L= cVCP(n,p) + BM*(1-yVC(n,p));
 c6(n)..                                  sum(p,yVC(n,p)) =E= 1;
@@ -428,7 +428,19 @@ CS.FX('n2','i1',p) = 0;
 CR.FX('n2','i1',p) = 0;
 CS.FX('n2','i3',p) = 0;
 CR.FX('n2','i3',p) = 0;
-CR.FX('n3',i,p) = 0;
+CS.FX('n2','i5',p) = 0;
+CR.FX('n2','i5',p) = 0;
+CS.FX('n2','i6',p) = 0;
+CR.FX('n2','i6',p) = 0;
+CS.FX('n3','i1',p) = 0;
+CR.FX('n3','i1',p) = 0;
+CS.FX('n3','i2',p) = 0;
+CR.FX('n3','i2',p) = 0;
+CS.FX('n3','i3',p) = 0;
+CR.FX('n3','i3',p) = 0;
+CS.FX('n3','i4',p) = 0;
+CR.FX('n3','i4',p) = 0;
+*CR.FX('n3',i,p) = 0;
 FR.FX(i,ip,p) = 0;
 R.FX('n1','n2',p) = 0;
 R.FX('n1','n3',p) = 0;
@@ -436,6 +448,7 @@ R.FX('n2','n1',p) = 0;
 R.FX('n2','n3',p) = 0;
 R.FX('n3','n1',p) = 0;
 R.FX('n3','n2',p) = 0;
+CT.FX = 3;
 
 
 Model Case1_Base1a /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,l1,l2,l3,l4,l5,l6,l7,l8,l9,l10,l11,l12,l13,l14,l15,l16,l17,l18,l19,l20,l21,l22,l23,l24,l25,l26,l27,l28,l29,l30,l31,l32,l33,l34,l35,c1,c9/;
@@ -460,12 +473,22 @@ Solve Case1_Base1b using MINLP maximising Profitp;
 
 Profitp.FX = Profitp.L;
 
-Model Case1_Base1c /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,g30,g31,n1,n2,n3,n4,c1,c2,c3,c4,c5,c6,c7,c8,c10/;
+Model Case1_Base1c /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,g30,g31,g32,n1,n2,n3,n4,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10/;
 Options RESLIM = 3000000000;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MINLP = BARON;
-Option  optcr = 0.0;
+Option  optcr = 0.005;
 Solve Case1_Base1c using MINLP maximising Profit;
+
+Profit.FX = Profit.L;
+
+Model Case1_Base1d /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,g30,g31,g32,n1,n2,n3,n4,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10/;
+Options RESLIM = 3000000000;
+Option SYSOUT = ON;
+Options LIMROW = 1e9;
+Options MINLP = BARON;
+Option  optcr = 0.005;
+Solve Case1_Base1c using MINLP minimising CW;
 Tin(i,p) = ((sum(n,CS.L(n,i,p)*Tsup.L(n,p))) + sum(ip$(ord(ip) ne ord(i)),FR.L(ip,i,p)*Tout.L(ip,p)))/Fin.L(i,p);
 Display Tin,OS_U,CRS_U,CW.L;
