@@ -13,7 +13,7 @@ j                Equipment units
 n                Cooling water sources supplying the cooling water network
                  /n1*n3/
 p                Time points
-                 /p1*p8/
+                 /p1*p9/
 s                States
                  /s1*s7/
 ij(i,j)          Set of tasks that can be scheduled on equipment unit j
@@ -51,7 +51,6 @@ cTR              Total raw material costs ($)
 CR(n,i,p)        Return cooling water flow to cooling water source n from cooling-water-using operation i at time point p (t.h^-1)
 CS(n,i,p)        Cooling water flow supplied from cooling water source n to cooling-water-using operation i at time point p (t.h^-1)
 CT               Total number of active cooling towers
-CW               Total cooling water flow rate supplied from all cooling towers (t.h^-1)
 CW1              Total cooling water flow rate supplied from cooling tower 1 (t.h^-1)
 CW2              Total cooling water flow rate supplied from cooling tower 2 (t.h^-1)
 CW3              Total cooling water flow rate supplied from cooling tower 3 (t.h^-1)
@@ -99,6 +98,7 @@ Zs(j,p)          Binary variable indicating whether a task in I(j) is assigned t
 ;
 
 Free variables
+CW               Total cooling water flow rate supplied from all cooling towers (t.h^-1)
 Profitp          Total production profit excluding utility costs ($)
 Profit           Total profit ($)
 ;
@@ -394,7 +394,7 @@ $Offtext
 
 c1..                                     cTR =E= sum(i,sum(s,sum(p,cRM(s)*BI(i,s,p))));
 c2(p)..                                  cPO(p) =E= sum(n,(110*OS(n,p) + 2275.132*M(n,p) + 1138*B(n,p)));
-c3(n,p)..                                cVCP(n,p) =E= (746.749*(OS(n,p)**0.79)*(Range(n,p)**0.57)*(1/(Approach(n,p)**0.9924))*(((0.022*Twb)+(0.39))*2.447))*H/8000;
+c3(n,p)..                                cVCP(n,p) =E= (746.749*(OS(n,p)**0.79)*(Range(n,p)**0.57)*(1/(Approach(n,p)**0.9924))+(((0.022*Twb)+(0.39))**2.447))*H/8000;
 c4(n,p)..                                cVC(n) =G= cVCP(n,p);
 c5(n,p)$(ord(p) ne card(p))..            cVC(n) =L= cVCP(n,p) + BM*(1-yVC(n,p));
 c6(n)..                                  sum(p,yVC(n,p)) =E= 1;
@@ -443,12 +443,22 @@ Solve Case1_Base2b using MINLP maximising Profitp;
 
 Profitp.FX = Profitp.L;
 
-Model Case1_Base2c /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,g30,g31,g32,n1,n2,n3,n4,c1,c2,c3,c4,c5,c6,c7,c8,c10/;
+Model Case1_Base2c /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,g30,g31,g32,n1,n2,n3,n4,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10/;
 Options RESLIM = 3000000000;
 Option SYSOUT = ON;
 Options LIMROW = 1e9;
 Options MINLP = BARON;
-Option  optcr = 0.0;
+Option  optcr = 0.005;
 Solve Case1_Base2c using MINLP maximising Profit;
+
+Profit.FX = Profit.L;
+
+Model Case1_Base2d /s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s16,s17,s18,s19,s20,s21,s22,s23,s24,s25,s26,s27,s28,s29,s30,s31,s32,s33,s34,s35,s36,g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14,g15,g16,g17,g18,g19,g20,g21,g22,g23,g25,g26,g27,g28,g29,g30,g31,g32,n1,n2,n3,n4,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10/;
+Options RESLIM = 3000000000;
+Option SYSOUT = ON;
+Options LIMROW = 1e9;
+Options MINLP = BARON;
+Option  optcr = 0.005;
+Solve Case1_Base2d using MINLP minimising CW;
 Tin(i,p) = ((sum(n,CS.L(n,i,p)*Tsup.L(n,p))) + sum(ip$(ord(ip) ne ord(i)),FR.L(ip,i,p)*Tout.L(ip,p)))/Fin.L(i,p);
 Display Tin,OS_U,CRS_U,CW.L;
